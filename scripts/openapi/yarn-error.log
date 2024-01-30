@@ -1,0 +1,42 @@
+Arguments: 
+  /snap/node/8007/bin/node /snap/node/8007/bin/yarn.js codegen
+
+PATH: 
+  /snap/node/8007/usr/sbin:/snap/node/8007/usr/bin:/snap/node/8007/sbin:/snap/node/8007/bin:/home/fbanks/Projects/dressr/scripts/openapi/venv/bin:/usr/bin/docker-credential-gcr:/home/fbanks/.local/bin:/home/fbanks/.local/bin:/usr/bin/docker-credential-gcr:/home/fbanks/.local/bin:/home/fbanks/google-cloud-sdk/bin:/home/fbanks/.nvm/versions/node/v21.3.0/bin:/home/fbanks/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  20.10.0
+
+Platform: 
+  linux x64
+
+Trace: 
+  SyntaxError: /home/fbanks/Projects/dressr/scripts/openapi/package.json: Expected double-quoted property name in JSON at position 91
+      at JSON.parse (<anonymous>)
+      at /snap/node/8007/lib/cli.js:1629:59
+      at Generator.next (<anonymous>)
+      at step (/snap/node/8007/lib/cli.js:310:30)
+      at /snap/node/8007/lib/cli.js:321:13
+
+npm manifest: 
+  {
+    "scripts": {
+      "codegen": "rtk-query-codegen-openapi ./codegen/gateway-config.ts",
+    },
+    "devDependencies": {
+      "@rtk-query/codegen-openapi": "^1.2.0",
+      "ts-node": "^10.9.2"
+    },
+    "dependencies": {
+      "@reduxjs/toolkit": "^2.0.1"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

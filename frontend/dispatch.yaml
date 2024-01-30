@@ -1,0 +1,7 @@
+dispatch:
+  - url: "*/dressr"
+    service: dressrfrontend
+  - url: "*/dressr/*"
+    service: dressrfrontend
+  - url: "*/*"
+    service: frontend

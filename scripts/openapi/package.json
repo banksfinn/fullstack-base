@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "codegen": "rtk-query-codegen-openapi ./codegen/gateway-config.ts"
+  },
+  "devDependencies": {
+    "@rtk-query/codegen-openapi": "^1.2.0",
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.0.1"
+  }
+}

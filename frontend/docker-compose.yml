@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  frontend:
+    build: .
+    container_name: dressr-frontend-individual
+    environment:
+      - PORT=8080
+    ports:
+      - "8080:80"

@@ -1,0 +1,4 @@
+export EXAMPLE_CLIENT_ID=""
+export EXAMPLE_CLIENT_SECRET=""
+export ENVIRONMENT=""
+export SECRET_KEY=""

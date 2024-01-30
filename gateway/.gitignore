@@ -1,0 +1,7 @@
+venv
+__pycache__
+credentials.json
+.ruff_cache
+environments/production.sh
+environments/testing.sh
+environments/sandbox.sh
