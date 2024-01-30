@@ -5,6 +5,7 @@ from schemas.users import (
     UserGetQuery,
     UserCreateRequest,
     UserDeleteRequest,
+    UserUpdateRequest,
 )
 from typing import Any
 from fastapi import HTTPException
@@ -22,15 +23,15 @@ class UserStore(BaseStore):
 
     def get_user_from_database_by_email(self, user_email: str) -> UserFromGateway | None:
         """Get the requested user via email."""
-        entity = self.store().find_one({"email": user_email})
+        entity = self.store().find_one({"user_email": user_email})
         if entity:
-            return UserFromDatabase(**entity)
+            return self.convert_database_raw_dictionary_to_database_object(entity)
 
     def get_user_from_gateway_by_email(self, user_email: str) -> UserFromGateway | None:
         """Get the requested user via email."""
-        entity = self.store().find_one({"email": user_email})
+        entity = self.store().find_one({"user_email": user_email})
         if entity:
-            return self.convert_database_to_gateway(UserFromDatabase(**entity))
+            return self.convert_database_raw_dictionary_to_gateway_object(entity)
 
     def get_user_from_database_by_display_name(self, display_name: str) -> UserFromDatabase | None:
         """Get the requested user via display name."""
@@ -58,19 +59,14 @@ class UserStore(BaseStore):
         del entity_info["password"]
         return entity_info
 
-    def add_creation_user_information(
-        self, entity_data: dict[str, Any], current_user: UserFromGateway
-    ):
-        entity_data["updated_by"] = entity_data["_id"]
-        entity_data["created_by"] = entity_data["_id"]
-        # Easier to store it twice than deal with validation issues
-        entity_data["user_id"] = entity_data["_id"]
-        return entity_data
-
     def add_creation_request_data_no_user(
         self, entity_data: dict[str, Any], now: str
     ) -> dict[str, Any]:
         entity_data = self.add_creation_timing_information(entity_data, now)
+        entity_data["updated_by"] = entity_data["_id"]
+        entity_data["created_by"] = entity_data["_id"]
+        # Easier to store it twice than deal with validation issues
+        entity_data["user_id"] = entity_data["_id"]
 
         return entity_data
 
@@ -101,11 +97,17 @@ class UserStore(BaseStore):
 
         return self.create_entity_no_user(user_create_request)
 
+    def update_user(
+        self, user_update_request: UserUpdateRequest, current_user: UserFromGateway
+    ) -> UserFromGateway:
+        """Update the requested user."""
+        return self.update_entity(user_update_request, current_user)
+
     def delete_user(
         self, user_delete_request: UserDeleteRequest, current_user: UserFromGateway
     ) -> UserFromGateway:
         """Delete the requested user."""
-        return self.delete_entity(user_delete_request, None)
+        return self.delete_entity(user_delete_request, current_user)
 
 
 user_store = UserStore()

@@ -11,12 +11,14 @@ from stores.users import user_store
 router = APIRouter()
 
 
-def authenticate_user(email: str, password: str) -> UserFromGateway | None:
-    user = user_store.get_user_by_email(user_email=email)
-    if not user:
-        return None
-    if not verify_password(password, user.hashed_password):
-        return None
+def authenticate_user(email: str, password: str) -> UserFromGateway:
+    user: UserFromGateway | None = user_store.get_user_from_gateway_by_email(user_email=email)
+    print(user)
+    if not user or not verify_password(password, user.hashed_password):
+        raise HTTPException(
+            status_code=400, detail="Unable to authenticate user with email: " + email
+        )
+
     return user
 
 
@@ -26,9 +28,6 @@ def handle_user_login(user_login_request: UserLoginRequest) -> SuccessfulLoginRe
     OAuth2 compatible token login, get an access token for future requests
     """
     user = authenticate_user(user_login_request.user_email, user_login_request.password)
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
 
     return SuccessfulLoginResponse(
         access_token=create_access_token(str(user.user_id)),

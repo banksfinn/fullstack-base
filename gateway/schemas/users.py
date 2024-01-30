@@ -19,6 +19,7 @@ class UserFromDatabase(EntityFromDatabase):
 class UserFromGateway(EntityFromGateway):
     display_name: str = Field(description="The display name of the user")
     user_email: str = Field(description="The email of the user")
+    hashed_password: str = Field(description="The stored and hashed password of the user")
 
 
 # Inbound Requests

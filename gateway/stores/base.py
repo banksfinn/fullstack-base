@@ -19,7 +19,7 @@ class BaseStore:
     collection_name: str
     entity_from_database_model: BaseModel
     entity_from_gateway_model: BaseModel
-    db_name = "INSERT_DB_NAME_HERE"
+    db_name = "users"
 
     def __init__(self):
         # TODO: Switch this to enterprise
@@ -47,11 +47,18 @@ class BaseStore:
 
     def convert_database_object_to_gateway_object(self, entity: BaseModel) -> BaseModel:
         """Convert a database model to gateway."""
+        # TODO: Test a better conversion between models than a straight model dump
         return self.entity_from_gateway_model(**entity.model_dump())
 
     def convert_database_raw_dictionary_to_database_object(self, entity: Any) -> BaseModel:
-        """Convert a database model to gateway."""
+        """Convert a database dict to database model."""
         return self.entity_from_database_model(**entity)
+
+    def convert_database_raw_dictionary_to_gateway_object(self, entity: Any) -> BaseModel:
+        """Convert a database dict to gateway model."""
+        return self.convert_database_object_to_gateway_object(
+            self.entity_from_database_model(**entity)
+        )
 
     # Getting entities
 
@@ -66,13 +73,20 @@ class BaseStore:
         # Apply entity specific filtering
         search = self.handle_get_entities_query_filters(query, search)
 
-        self.logger.info("Executing Get Entities Search", search=search)
-        entities: list[Any] = self.store().find(search, limit=query.limit, skip=query.offset)
+        sort_mode = {query.order_by: 1 if query.direction == "asc" else -1}
+
+        self.logger.info(
+            "Executing Get Entities Search",
+            search=search,
+            limit=query.limit,
+            offset=query.offset,
+            sort=sort_mode,
+        )
+        entities: list[Any] = (
+            self.store().find(search, limit=query.limit, skip=query.offset).sort(sort_mode)
+        )
         self.logger.info("Executed Get Entities Search")
-        database_entities = [
-            self.convert_database_raw_dictionary_to_database_object(e) for e in entities
-        ]
-        return [self.convert_database_to_gateway(e) for e in database_entities]
+        return [self.convert_database_raw_dictionary_to_gateway_object(e) for e in entities]
 
     # Adding a new entity
 
@@ -136,10 +150,9 @@ class BaseStore:
         self.sanitize_database_entity(entity_info)
 
         # Also a sanity check, to ensure everything going into the database is kosher
-        database_entity: BaseModel = self.convert_database_raw_dictionary_to_database_object(
+        output_entity: BaseModel = self.convert_database_raw_dictionary_to_gateway_object(
             entity_info
         )
-        output_entity: BaseModel = self.convert_database_object_to_gateway_object(database_entity)
 
         self.store().insert_one(entity_info)
 
@@ -165,10 +178,9 @@ class BaseStore:
         self.sanitize_database_entity(entity_info)
 
         # Also a sanity check, to ensure everything going into the database is kosher
-        database_entity: BaseModel = self.convert_database_raw_dictionary_to_database_object(
+        output_entity: BaseModel = self.convert_database_raw_dictionary_to_gateway_object(
             entity_info
         )
-        output_entity: BaseModel = self.convert_database_object_to_gateway_object(database_entity)
 
         self.store().insert_one(entity_info)
 
@@ -222,10 +234,9 @@ class BaseStore:
         self.sanitize_database_entity(merged_entity_info)
 
         # Sanity check, to ensure everything going into the database is kosher
-        database_entity: BaseModel = self.convert_database_raw_dictionary_to_database_object(
+        output_entity: BaseModel = self.convert_database_raw_dictionary_to_gateway_object(
             merged_entity_info
         )
-        output_entity = self.convert_database_object_to_gateway_object(database_entity)
 
         existing_entity = self.store().update_one({"_id": entity_id}, {"$set": merged_entity_info})
 
@@ -235,6 +246,9 @@ class BaseStore:
         self, deletion_request: EntityDeleteRequest, user: UserFromGateway
     ) -> EntityFromGateway:
         """Delete an entity"""
+        self.logger.info(
+            "Entity deletion request", deletion_request=deletion_request, current_user=user
+        )
         existing_entity = self.store().find_one_and_delete(
             {"_id": deletion_request.id, "user_id": user.user_id}
         )
@@ -244,9 +258,8 @@ class BaseStore:
                 detail="Unable to locate entity with that id",
             )
 
-        database_entity: BaseModel = self.convert_database_raw_dictionary_to_database_object(
+        output_entity: BaseModel = self.convert_database_raw_dictionary_to_gateway_object(
             existing_entity
         )
-        output_entity = self.convert_database_object_to_gateway_object(database_entity)
 
         return output_entity

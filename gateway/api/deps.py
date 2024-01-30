@@ -15,14 +15,15 @@ def get_current_user(token: TokenDependency) -> UserFromGateway:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[security.ALGORITHM])
         token = DecodedToken(**payload)
-        # token_data = TokenPayload(**payload)
     except (jwt.JWTError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
 
-    user = user_store.get_user_by_id(token.user_id)
+    print(token)
+
+    user = user_store.get_user_from_gateway_by_id(token.user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Authentication failed, user not found")
     return user
