@@ -1,13 +1,13 @@
 import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit";
 import { baseGatewayClient } from "src/clients/baseGatewayClient";
 import authSlice from "./components/authSlice";
-import createTransactionSlice from "./components/createTransactionSlice";
+import createItemSlice from "./components/createItemSlice";
 
 export const store = configureStore({
   reducer: {
     [baseGatewayClient.reducerPath]: baseGatewayClient.reducer,
     authSlice: authSlice,
-    createTransactionSlice: createTransactionSlice,
+    createItemSlice: createItemSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(baseGatewayClient.middleware),

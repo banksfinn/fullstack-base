@@ -1,16 +1,15 @@
 import { Box, Button, useTheme } from "@mui/material";
 import { useState } from "react";
-import CreateTransactionDialog from "src/components/Transactions/CreateTransactionDialog";
+import CreateItemDialog from "src/components/Items/CreateItemDialog";
 // // import { useSelector } from "react-redux"
 // import { getCurrentUser } from "src/store/components/userSlice"
 // import { RootState } from "src/store/store"
 
-interface SandboxViewProps {}
+interface ItemViewProps {}
 
-const SandboxView = (props: SandboxViewProps) => {
+const ItemView = (props: ItemViewProps) => {
   const theme = useTheme();
-  const [createTransactionDialog, setCreateTransactionDialog] =
-    useState<boolean>(false);
+  const [createItemDialog, setCreateItemDialog] = useState<boolean>(false);
 
   return (
     <Box
@@ -22,14 +21,14 @@ const SandboxView = (props: SandboxViewProps) => {
         flexDirection: "column",
       }}
     >
-      <CreateTransactionDialog
-        open={createTransactionDialog}
-        onClose={() => setCreateTransactionDialog(false)}
+      <CreateItemDialog
+        open={createItemDialog}
+        onClose={() => setCreateItemDialog(false)}
       />
-      <Button onClick={() => setCreateTransactionDialog(true)}>
-        Open Create Transaction Dialog
+      <Button onClick={() => setCreateItemDialog(true)}>
+        Open Create Item Dialog
       </Button>
     </Box>
   );
 };
-export default SandboxView;
+export default ItemView;

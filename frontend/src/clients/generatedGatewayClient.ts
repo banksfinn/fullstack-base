@@ -1,14 +1,14 @@
 import { baseGatewayClient as api } from "./baseGatewayClient";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
-    handleTransactionWebhookSyncWebhookTransactionsPost: build.mutation<
-      HandleTransactionWebhookSyncWebhookTransactionsPostApiResponse,
-      HandleTransactionWebhookSyncWebhookTransactionsPostApiArg
+    handleExampleWebhookSyncWebhookExamplePost: build.mutation<
+      HandleExampleWebhookSyncWebhookExamplePostApiResponse,
+      HandleExampleWebhookSyncWebhookExamplePostApiArg
     >({
       query: (queryArg) => ({
-        url: `/webhook/transactions`,
+        url: `/webhook/example`,
         method: "POST",
-        body: queryArg.transactionSyncUpdate,
+        body: queryArg.exampleSyncUpdate,
       }),
     }),
     getUsersUsersGet: build.query<
@@ -23,12 +23,12 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: () => ({ url: `/me` }),
     }),
-    getTransactionsTransactionsGet: build.query<
-      GetTransactionsTransactionsGetApiResponse,
-      GetTransactionsTransactionsGetApiArg
+    getItemsItemsGet: build.query<
+      GetItemsItemsGetApiResponse,
+      GetItemsItemsGetApiArg
     >({
       query: (queryArg) => ({
-        url: `/transactions`,
+        url: `/items`,
         params: {
           offset: queryArg.offset,
           limit: queryArg.limit,
@@ -36,31 +36,25 @@ const injectedRtkApi = api.injectEndpoints({
         },
       }),
     }),
-    createTransactionTransactionsPost: build.mutation<
-      CreateTransactionTransactionsPostApiResponse,
-      CreateTransactionTransactionsPostApiArg
+    createItemItemsPost: build.mutation<
+      CreateItemItemsPostApiResponse,
+      CreateItemItemsPostApiArg
     >({
       query: (queryArg) => ({
-        url: `/transactions`,
+        url: `/items`,
         method: "POST",
-        body: queryArg.createTransactionRequest,
+        body: queryArg.createItemRequest,
       }),
     }),
-    updateTransactionTransactionsPatch: build.mutation<
-      UpdateTransactionTransactionsPatchApiResponse,
-      UpdateTransactionTransactionsPatchApiArg
+    updateItemItemsPatch: build.mutation<
+      UpdateItemItemsPatchApiResponse,
+      UpdateItemItemsPatchApiArg
     >({
       query: (queryArg) => ({
-        url: `/transactions`,
+        url: `/items`,
         method: "PATCH",
-        body: queryArg.updateTransactionRequest,
+        body: queryArg.updateItemRequest,
       }),
-    }),
-    refreshTransactionsTransactionsRefreshPost: build.mutation<
-      RefreshTransactionsTransactionsRefreshPostApiResponse,
-      RefreshTransactionsTransactionsRefreshPostApiArg
-    >({
-      query: () => ({ url: `/transactions/refresh`, method: "POST" }),
     }),
     handleUserLoginLoginTokenPost: build.mutation<
       HandleUserLoginLoginTokenPostApiResponse,
@@ -86,10 +80,10 @@ const injectedRtkApi = api.injectEndpoints({
   overrideExisting: false,
 });
 export { injectedRtkApi as gatewayClientEndpoints };
-export type HandleTransactionWebhookSyncWebhookTransactionsPostApiResponse =
+export type HandleExampleWebhookSyncWebhookExamplePostApiResponse =
   /** status 200 Successful Response */ any;
-export type HandleTransactionWebhookSyncWebhookTransactionsPostApiArg = {
-  transactionSyncUpdate: TransactionSyncUpdate;
+export type HandleExampleWebhookSyncWebhookExamplePostApiArg = {
+  exampleSyncUpdate: ExampleSyncUpdate;
 };
 export type GetUsersUsersGetApiResponse =
   /** status 200 Successful Response */ User[];
@@ -99,26 +93,23 @@ export type GetUsersUsersGetApiArg = {
 export type GetCurrentUserMeGetApiResponse =
   /** status 200 Successful Response */ User;
 export type GetCurrentUserMeGetApiArg = void;
-export type GetTransactionsTransactionsGetApiResponse =
-  /** status 200 Successful Response */ Transaction[];
-export type GetTransactionsTransactionsGetApiArg = {
+export type GetItemsItemsGetApiResponse =
+  /** status 200 Successful Response */ Item[];
+export type GetItemsItemsGetApiArg = {
   offset?: number;
   limit?: number;
   userId: string;
 };
-export type CreateTransactionTransactionsPostApiResponse =
-  /** status 200 Successful Response */ Transaction;
-export type CreateTransactionTransactionsPostApiArg = {
-  createTransactionRequest: CreateTransactionRequest;
+export type CreateItemItemsPostApiResponse =
+  /** status 200 Successful Response */ Item;
+export type CreateItemItemsPostApiArg = {
+  createItemRequest: CreateItemRequest;
 };
-export type UpdateTransactionTransactionsPatchApiResponse =
-  /** status 200 Successful Response */ Transaction;
-export type UpdateTransactionTransactionsPatchApiArg = {
-  updateTransactionRequest: UpdateTransactionRequest;
+export type UpdateItemItemsPatchApiResponse =
+  /** status 200 Successful Response */ Item;
+export type UpdateItemItemsPatchApiArg = {
+  updateItemRequest: UpdateItemRequest;
 };
-export type RefreshTransactionsTransactionsRefreshPostApiResponse =
-  /** status 200 Successful Response */ any;
-export type RefreshTransactionsTransactionsRefreshPostApiArg = void;
 export type HandleUserLoginLoginTokenPostApiResponse =
   /** status 200 Successful Response */ SuccessfulLoginResponse;
 export type HandleUserLoginLoginTokenPostApiArg = {
@@ -137,19 +128,11 @@ export type ValidationError = {
 export type HttpValidationError = {
   detail?: ValidationError[];
 };
-export type TransactionSyncUpdate = {
+export type ExampleSyncUpdate = {
   /** The type of webhook */
   webhook_type: string;
   /** The code of the webhook */
   webhook_code: string;
-  /** The item that has been updated */
-  item_id: string;
-  /** If the initial update has finished */
-  initial_update_complete: boolean;
-  /** If the historical update has completed */
-  historical_update_complete: boolean;
-  /** The environment of the sync */
-  environment: string;
 };
 export type User = {
   /** The ID of the entity */
@@ -171,37 +154,19 @@ export type GetUsersQuery = {
   /** Filter by this user ID */
   user_id: string;
 };
-export type Transaction = {
+export type Item = {
   /** The ID of the entity */
   id: string;
   /** The user id who owns this entity */
   user_id: string;
-  /** The ID of the transaction in Plaid */
-  plaid_transaction_id: string | null;
-  /** The original description from Plaid */
-  raw_label: string;
-  /** The label of the transaction */
+  /** The label of the item */
   label: string;
-  /** The amount of the transaction (in USD) */
-  amount: number | null;
-  /** The code of the currency type */
-  currency_code: string;
-  /** The source account for this transaction */
-  source_account: string;
-  /** The destination account for this transaction */
-  destination_account: string;
-  /** The tags applied to the transaction */
-  tags: string[];
-  /** If the transaction has been reviewed */
-  reviewed: boolean;
 };
-export type CreateTransactionRequest = {
-  /** The code of the currency type */
-  currency_code?: string;
-  /** The original description from Plaid */
+export type CreateItemRequest = {
+  /** The original label */
   raw_label: string;
 };
-export type UpdateTransactionRequest = {
+export type UpdateItemRequest = {
   /** The ID of the entity to update */
   id: string;
 };
@@ -219,13 +184,12 @@ export type UserLoginRequest = {
 };
 export type CreateUserRequest = {};
 export const {
-  useHandleTransactionWebhookSyncWebhookTransactionsPostMutation,
+  useHandleExampleWebhookSyncWebhookExamplePostMutation,
   useGetUsersUsersGetQuery,
   useGetCurrentUserMeGetQuery,
-  useGetTransactionsTransactionsGetQuery,
-  useCreateTransactionTransactionsPostMutation,
-  useUpdateTransactionTransactionsPatchMutation,
-  useRefreshTransactionsTransactionsRefreshPostMutation,
+  useGetItemsItemsGetQuery,
+  useCreateItemItemsPostMutation,
+  useUpdateItemItemsPatchMutation,
   useHandleUserLoginLoginTokenPostMutation,
   useHandleRegisterUserRegisterPostMutation,
 } = injectedRtkApi;

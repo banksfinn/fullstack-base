@@ -1,1 +1,2 @@
 - [ ] Get Daemon architecture up and running
+- [ ] User auth redirects

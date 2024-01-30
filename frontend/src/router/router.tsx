@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import SandboxView from "src/views/SandboxView";
+import ItemView from "src/views/SandboxView";
 
 const Router = () => {
   return (
@@ -7,9 +7,9 @@ const Router = () => {
       {/* TODO: Change this */}
       <Route
         path="/"
-        element={<Navigate to="/sandbox" replace={true} />}
+        element={<Navigate to="/itemview" replace={true} />}
       ></Route>
-      <Route index path="/sandbox" element={<SandboxView />} />
+      <Route index path="/itemview" element={<ItemView />} />
     </Routes>
   );
 };

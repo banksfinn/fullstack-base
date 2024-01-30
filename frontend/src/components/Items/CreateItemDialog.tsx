@@ -2,12 +2,12 @@ import { Box, Dialog, TextField, Typography } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 
-interface CreateTransactionDialogProps {
+interface CreateItemDialogProps {
   open: boolean;
   onClose: () => void;
 }
 
-const CreateTransactionDialog = (props: CreateTransactionDialogProps) => {
+const CreateItemDialog = (props: CreateItemDialogProps) => {
   const { open, onClose } = props;
 
   return (
@@ -18,7 +18,7 @@ const CreateTransactionDialog = (props: CreateTransactionDialogProps) => {
     >
       <Box sx={{ p: 4 }}>
         <Box sx={{ width: "100%", height: "64px" }}>
-          <Typography>Create Transaction</Typography>
+          <Typography>Create Item</Typography>
         </Box>
         <Box sx={{ width: "100%", height: "calc(100% - 64px)" }}>
           Date
@@ -48,4 +48,4 @@ const CreateTransactionDialog = (props: CreateTransactionDialogProps) => {
     </Dialog>
   );
 };
-export default CreateTransactionDialog;
+export default CreateItemDialog;
