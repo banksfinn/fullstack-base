@@ -7,11 +7,11 @@ from pydantic import ValidationError
 from core import security
 from core.config import settings
 from stores.users import user_store
-from schemas.users import User
+from schemas.users import UserFromGateway
 from schemas.auth import TokenDependency, DecodedToken
 
 
-def get_current_user(token: TokenDependency) -> User:
+def get_current_user(token: TokenDependency) -> UserFromGateway:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[security.ALGORITHM])
         token = DecodedToken(**payload)
@@ -24,8 +24,8 @@ def get_current_user(token: TokenDependency) -> User:
 
     user = user_store.get_user_by_id(token.user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Authentication failed, user not found")
     return user
 
 
-CurrentUserDependency = Annotated[User, Depends(get_current_user)]
+CurrentUserDependency = Annotated[UserFromGateway, Depends(get_current_user)]

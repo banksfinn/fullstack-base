@@ -1,11 +1,11 @@
 from typing import Any
-from schemas.users import User
+from schemas.users import UserFromGateway
 from schemas.base import (
-    GetEntitiesQuery,
-    Entity,
-    CreateEntityRequest,
-    UpdateEntityRequest,
-    DeleteEntityRequest,
+    EntityGetQuery,
+    EntityFromGateway,
+    EntityCreateRequest,
+    EntityDeleteRequest,
+    EntityUpdateRequest,
 )
 from fastapi import HTTPException, status
 from uuid import uuid4, UUID
@@ -45,33 +45,39 @@ class BaseStore:
 
         return entity_info
 
-    def convert_database_to_gateway(self, entity: BaseModel) -> BaseModel:
+    def convert_database_object_to_gateway_object(self, entity: BaseModel) -> BaseModel:
         """Convert a database model to gateway."""
-        return self.entity_from_gateway_model(entity.model_dump())
+        return self.entity_from_gateway_model(**entity.model_dump())
+
+    def convert_database_raw_dictionary_to_database_object(self, entity: Any) -> BaseModel:
+        """Convert a database model to gateway."""
+        return self.entity_from_database_model(**entity)
 
     # Getting entities
 
-    def handle_get_entities_query_filters(self, search):
+    def handle_get_entities_query_filters(self, query: EntityGetQuery, search: dict[str, Any]):
         # Common filters
         return search
 
-    def get_entities(self, query: GetEntitiesQuery) -> list[Entity]:
+    def get_entities(self, query: EntityGetQuery) -> list[EntityFromGateway]:
         # Create the search
-        search = {}
+        search: dict[str, Any] = {}
 
         # Apply entity specific filtering
         search = self.handle_get_entities_query_filters(query, search)
 
         self.logger.info("Executing Get Entities Search", search=search)
-        entities = self.store().find(search)
+        entities: list[Any] = self.store().find(search, limit=query.limit, skip=query.offset)
         self.logger.info("Executed Get Entities Search")
-        database_entities = [self.entity_from_database_model(**e) for e in entities]
-        return [self.convert_database_to_gateway(**e) for e in database_entities]
+        database_entities = [
+            self.convert_database_raw_dictionary_to_database_object(e) for e in entities
+        ]
+        return [self.convert_database_to_gateway(e) for e in database_entities]
 
     # Adding a new entity
 
     def add_creation_timing_information(
-        self, entity_data: dict[str, Any], user: User, now: str
+        self, entity_data: dict[str, Any], now: str
     ) -> dict[str, Any]:
         entity_data["created_at"] = now
         entity_data["updated_at"] = now
@@ -79,7 +85,7 @@ class BaseStore:
         return entity_data
 
     def add_creation_user_information(
-        self, entity_data: dict[str, Any], user: User
+        self, entity_data: dict[str, Any], user: UserFromGateway
     ) -> dict[str, Any]:
         entity_data["updated_by"] = user.id
         entity_data["created_by"] = user.id
@@ -88,19 +94,60 @@ class BaseStore:
         return entity_data
 
     def add_creation_request_data(
-        self, entity_data: dict[str, Any], user: User, now: str
+        self, entity_data: dict[str, Any], user: UserFromGateway, now: str
     ) -> dict[str, Any]:
-        entity_data = self.add_creation_timing_information(entity_data, user, now)
+        entity_data = self.add_creation_timing_information(entity_data, now)
         entity_data = self.add_creation_user_information(entity_data, user)
 
         return entity_data
 
+    def add_creation_request_data_no_user(
+        self, entity_data: dict[str, Any], now: str
+    ) -> dict[str, Any]:
+        entity_data = self.add_creation_timing_information(entity_data, now)
+
+        return entity_data
+
     def handle_create_entity_mutations(
-        self, entity_info: dict[str, Any], user: User
+        self, entity_info: dict[str, Any], user: UserFromGateway
     ) -> dict[str, Any]:
         pass
 
-    def create_entity(self, creation_request: CreateEntityRequest, user: User) -> Entity:
+    def handle_create_entity_mutations_no_user(self, entity_info: dict[str, Any]) -> dict[str, Any]:
+        pass
+
+    def create_entity_no_user(
+        self, entity_create_request: EntityCreateRequest
+    ) -> EntityFromGateway:
+        # Store the time, generate the UUID
+        now = datetime.now()
+        new_id = self.generate_id()
+
+        # Generate the dictionary that we are uploading
+        entity_info = entity_create_request.model_dump()
+        entity_info["_id"] = new_id
+
+        # Add relevant database info
+        self.add_creation_request_data_no_user(entity_info, now)
+
+        # TODO: Turn all defaults into reasonable items, like "" for None on string
+        self.handle_create_entity_mutations_no_user(entity_info)
+
+        self.sanitize_database_entity(entity_info)
+
+        # Also a sanity check, to ensure everything going into the database is kosher
+        database_entity: BaseModel = self.convert_database_raw_dictionary_to_database_object(
+            entity_info
+        )
+        output_entity: BaseModel = self.convert_database_object_to_gateway_object(database_entity)
+
+        self.store().insert_one(entity_info)
+
+        return output_entity
+
+    def create_entity(
+        self, creation_request: EntityCreateRequest, user: UserFromGateway
+    ) -> EntityFromGateway:
         # Store the time, generate the UUID
         now = datetime.now()
         new_id = self.generate_id()
@@ -118,17 +165,19 @@ class BaseStore:
         self.sanitize_database_entity(entity_info)
 
         # Also a sanity check, to ensure everything going into the database is kosher
-        database_entity = self.entity_from_database_model(**entity_info)
-        output_entity = self.convert_database_to_gateway(database_entity)
+        database_entity: BaseModel = self.convert_database_raw_dictionary_to_database_object(
+            entity_info
+        )
+        output_entity: BaseModel = self.convert_database_object_to_gateway_object(database_entity)
 
-        self.store().insert_one(database_entity.model_dump())
+        self.store().insert_one(entity_info)
 
         return output_entity
 
     # Updating an entity
 
     def add_update_request_data(
-        self, entity_data: dict[str, Any], user: User, now: str
+        self, entity_data: dict[str, Any], user: UserFromGateway, now: str
     ) -> dict[str, Any]:
         entity_data["updated_by"] = user.user_id
         entity_data["updated_at"] = now
@@ -136,11 +185,13 @@ class BaseStore:
         return entity_data
 
     def handle_update_entity_mutations(
-        self, entity_info: dict[str, Any], user: User
+        self, entity_info: dict[str, Any], user: UserFromGateway
     ) -> dict[str, Any]:
         pass
 
-    def update_entity(self, update_request: UpdateEntityRequest, user: User) -> Entity:
+    def update_entity(
+        self, update_request: EntityUpdateRequest, user: UserFromGateway
+    ) -> EntityFromGateway:
         # Store the time
         now = datetime.now()
 
@@ -171,14 +222,18 @@ class BaseStore:
         self.sanitize_database_entity(merged_entity_info)
 
         # Sanity check, to ensure everything going into the database is kosher
-        database_entity = self.entity_from_database_model(**merged_entity_info)
-        output_entity = self.convert_database_to_gateway(database_entity)
+        database_entity: BaseModel = self.convert_database_raw_dictionary_to_database_object(
+            merged_entity_info
+        )
+        output_entity = self.convert_database_object_to_gateway_object(database_entity)
 
         existing_entity = self.store().update_one({"_id": entity_id}, {"$set": merged_entity_info})
 
         return output_entity
 
-    def delete_entity(self, deletion_request: DeleteEntityRequest, user: User) -> Entity:
+    def delete_entity(
+        self, deletion_request: EntityDeleteRequest, user: UserFromGateway
+    ) -> EntityFromGateway:
         """Delete an entity"""
         existing_entity = self.store().find_one_and_delete(
             {"_id": deletion_request.id, "user_id": user.user_id}
@@ -189,7 +244,9 @@ class BaseStore:
                 detail="Unable to locate entity with that id",
             )
 
-        database_entity = self.entity_from_database_model(**existing_entity)
-        output_entity = self.convert_database_to_gateway(database_entity)
+        database_entity: BaseModel = self.convert_database_raw_dictionary_to_database_object(
+            existing_entity
+        )
+        output_entity = self.convert_database_object_to_gateway_object(database_entity)
 
         return output_entity

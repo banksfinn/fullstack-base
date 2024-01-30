@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from stores.items import item_store
 from schemas.items import (
-    GetItemsQuery,
-    Item,
-    CreateItemRequest,
-    UpdateItemRequest,
+    ItemGetQuery,
+    ItemFromGateway,
+    ItemCreateRequest,
+    ItemUpdateRequest,
+    ItemDeleteRequest,
 )
 from api.deps import (
     CurrentUserDependency,
@@ -15,8 +16,8 @@ router = APIRouter()
 
 @router.get("/items")
 def get_items(
-    get_items_query: GetItemsQuery = Depends(),
-) -> list[Item]:
+    get_items_query: ItemGetQuery = Depends(),
+) -> list[ItemFromGateway]:
     """
     Retrieve items.
     """
@@ -25,15 +26,23 @@ def get_items(
 
 @router.post("/items")
 def create_item(
-    create_item_request: CreateItemRequest, current_user: CurrentUserDependency
-) -> Item:
+    item_create_request: ItemCreateRequest, current_user: CurrentUserDependency
+) -> ItemFromGateway:
     """Create an item."""
-    return item_store.create_item(create_item_request, current_user=current_user)
+    return item_store.create_item(item_create_request, current_user=current_user)
 
 
 @router.patch("/items")
 def update_item(
-    update_item_request: UpdateItemRequest, current_user: CurrentUserDependency
-) -> Item:
+    item_update_request: ItemUpdateRequest, current_user: CurrentUserDependency
+) -> ItemFromGateway:
     """Create an item."""
-    return item_store.update_item(update_item_request, current_user=current_user)
+    return item_store.update_item(item_update_request, current_user=current_user)
+
+
+@router.delete("/items")
+def delete_item(
+    item_delete_request: ItemDeleteRequest, current_user: CurrentUserDependency
+) -> ItemFromGateway:
+    """Create an item."""
+    return item_store.delete_item(item_delete_request, current_user=current_user)

@@ -1,36 +1,36 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
+from uuid import UUID
 
 
-# I think this should be all fields
-class Entity(BaseModel):
-    id: str = Field(description="The ID of the entity")
-    user_id: str = Field(description="The user id who owns this entity")
-
-
-# Entity as represented in the database
 class EntityFromDatabase(BaseModel):
+    id: str = Field(description="The ID of the entity", alias="_id")
+    created_at: datetime = Field(description="The time that this article was created")
+    updated_by: str = Field(description="The user id who last updated this article")
+    updated_at: datetime = Field(description="The time that this article was last updated")
+    created_by: str = Field(description="The user id who created this article")
+
+    user_id: str = Field(description="The user who created this entity")
+
+
+class EntityFromGateway(BaseModel):
     id: str = Field(description="The ID of the entity")
-    updated_at: datetime = Field(description="The time that this entity was last updated")
-    created_at: datetime = Field(description="The time that this entity was created")
-    user_id: str = Field(description="The user id who owns this entity")
+    user_id: str = Field(description="The user who created this entity")
 
 
-# This is required for creating an entity
-class CreateEntityRequest(BaseModel):
+class EntityUpdateRequest(BaseModel):
+    id: UUID = Field(description="The ID of the entity being updated")
+
+
+class EntityDeleteRequest(BaseModel):
+    id: UUID = Field(description="The ID of the entity being updated")
+
+
+class EntityCreateRequest(BaseModel):
     pass
 
 
-# This is required for updating an entity
-class UpdateEntityRequest(BaseModel):
-    id: str = Field(description="The ID of the entity to update")
-
-
-class DeleteEntityRequest(BaseModel):
-    id: str = Field(description="The ID of the entity to delete")
-
-
-class GetEntitiesQuery(BaseModel):
+class EntityGetQuery(BaseModel):
     offset: int = Field(
         title="Offset",
         description="How many offset items from the beginning to skip",
@@ -41,4 +41,6 @@ class GetEntitiesQuery(BaseModel):
         description="The number of items to return with the response",
         default=50,
     )
-    user_id: str = Field(title="User ID", description="Filter by this user ID")
+    user_id: str | None = Field(
+        title="User ID", description="Filter by this specific user ID", default=None
+    )

@@ -13,7 +13,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api/gateway/": {
-        target: process.env.GATEWAY_URL || "http://localhost:6523",
+        target: process.env.GATEWAY_URL || "http://localhost:6524",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api\/gateway/, ""),

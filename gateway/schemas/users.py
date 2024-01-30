@@ -1,34 +1,51 @@
-from pydantic import Field
-from schemas.base import Entity, GetEntitiesQuery, CreateEntityRequest, UpdateEntityRequest
+from pydantic import BaseModel, Field
+from schemas.base import (
+    EntityFromDatabase,
+    EntityGetQuery,
+    EntityFromGateway,
+    EntityUpdateRequest,
+    EntityCreateRequest,
+    EntityDeleteRequest,
+)
 
 
-class User(Entity):
-    """A user in the system."""
-
-    email: str = Field(description="The email of the user")
-    transaction_refresh_interval_minutes: int = Field(
-        description="The refresh rate of transactions"
-    )
-
-    account_refresh_interval_minutes: int = Field(description="The refresh rate of accounts")
+# Base Objects
+class UserFromDatabase(EntityFromDatabase):
+    display_name: str = Field(description="The display name of the user")
+    user_email: str = Field(description="The email of the user")
+    hashed_password: str = Field(description="The stored and hashed password of the user")
 
 
-class CreateUserRequest(CreateEntityRequest):
+class UserFromGateway(EntityFromGateway):
+    display_name: str = Field(description="The display name of the user")
+    user_email: str = Field(description="The email of the user")
+
+
+# Inbound Requests
+class UserCreateRequest(EntityCreateRequest):
+    display_name: str = Field(description="The display name of the user")
+    user_email: str = Field(description="The email of the user")
+    password: str = Field(description="The password (to be hashed and stored)")
+
+
+# Inbound Requests
+class UserLoginRequest(BaseModel):
+    user_email: str = Field(description="The email of the user")
+    password: str = Field(description="The password of the user")
+
+
+class UserUpdateRequest(EntityUpdateRequest):
+    display_name: str | None = Field(description="The display name of the user", default=None)
+    password: str | None = Field(description="The new password of the user", default=None)
+
+
+class UserDeleteRequest(EntityDeleteRequest):
     pass
 
 
-class UpdateUserRequest(UpdateEntityRequest):
-    pass
+class UserDeleteRequestByEmail(BaseModel):
+    user_email: str = Field(description="The display name of the user to delete")
 
 
-class UserFromDatabase(User):
-    """An entity as represented in a database."""
-
-    # Include in here all fields that are stored that we don't pass along from the API
-    pass
-
-
-class GetUsersQuery(GetEntitiesQuery):
-    """Query for fetching users."""
-
+class UserGetQuery(EntityGetQuery):
     pass
