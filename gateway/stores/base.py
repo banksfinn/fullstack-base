@@ -19,7 +19,7 @@ class BaseStore:
     collection_name: str
     entity_from_database_model: BaseModel
     entity_from_gateway_model: BaseModel
-    db_name = "users"
+    db_name = "fullstack-base"
 
     def __init__(self):
         # TODO: Switch this to enterprise

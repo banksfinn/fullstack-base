@@ -44,7 +44,7 @@ class ItemStore(BaseStore):
         """Update the requested item."""
         return self.update_entity(item_update_request, user)
 
-    def delete_item(
+    def delete_item_by_email(
         self, item_delete_request: ItemDeleteRequest, user: UserFromGateway
     ) -> ItemFromGateway:
         """Delete the requested item"""
