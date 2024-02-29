@@ -1,14 +1,13 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
-// import { UserFromGateway } from "src/clients/generatedGatewayClient";
+// import { OutputUser } from "src/clients/generatedGatewayClient";
 import { useAppSelector } from "../hooks";
 import { getCookie, removeCookie, setCookie } from "tiny-cookie";
 
 interface UserState {
-  // user: UserFromGateway | null;
+  // user: OutputUser | null;
   accessToken: string | null;
 }
-
 
 export const getAccessTokenFromCookie = (): string | null => {
   return getCookie("accessToken");
@@ -21,7 +20,6 @@ export const setAccessTokenInCookie = (token: string | null) => {
     setCookie("accessToken", token);
   }
 };
-
 
 const loadUserState = (): UserState => {
   const data: string | null = localStorage.getItem("userState");
@@ -72,7 +70,6 @@ export const authSlice = createSlice({
     },
   },
 });
-
 
 export const { updateUserState, logoutUser } = authSlice.actions;
 
