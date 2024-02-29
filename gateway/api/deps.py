@@ -7,11 +7,11 @@ from pydantic import ValidationError
 from core import security
 from core.config import settings
 from stores.users import user_store
-from schemas.users import UserFromGateway
+from schemas.users import OutputUser
 from schemas.auth import TokenDependency, DecodedToken
 
 
-def get_current_user(token: TokenDependency) -> UserFromGateway:
+def get_current_user(token: TokenDependency) -> OutputUser:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[security.ALGORITHM])
         token = DecodedToken(**payload)
@@ -29,4 +29,4 @@ def get_current_user(token: TokenDependency) -> UserFromGateway:
     return user
 
 
-CurrentUserDependency = Annotated[UserFromGateway, Depends(get_current_user)]
+CurrentUserDependency = Annotated[OutputUser, Depends(get_current_user)]

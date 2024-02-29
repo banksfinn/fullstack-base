@@ -3,7 +3,7 @@ from core.security import verify_password, create_access_token
 
 from schemas.users import (
     UserCreateRequest,
-    UserFromGateway,
+    OutputUser,
 )
 from schemas.auth import SuccessfulLoginResponse, UserLoginRequest
 from stores.users import user_store
@@ -11,8 +11,8 @@ from stores.users import user_store
 router = APIRouter()
 
 
-def authenticate_user(email: str, password: str) -> UserFromGateway:
-    user: UserFromGateway | None = user_store.get_user_from_gateway_by_email(user_email=email)
+def authenticate_user(email: str, password: str) -> OutputUser:
+    user: OutputUser | None = user_store.get_user_from_gateway_by_email(user_email=email)
     print(user)
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(

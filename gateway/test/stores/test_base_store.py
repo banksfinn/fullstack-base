@@ -1,6 +1,5 @@
 """Test the base store."""
 from unittest.mock import Mock
-from stores.base import BaseStore
 
 
 def create_test_store():
@@ -11,3 +10,4 @@ def create_test_store():
 def test_sanitize_database_entity_basic():
     """Basic test."""
     store = create_test_store()
+    return store

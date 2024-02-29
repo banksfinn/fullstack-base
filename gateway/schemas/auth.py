@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from schemas.users import UserFromGateway
+from schemas.users import OutputUser
 from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated
 from fastapi import Depends
@@ -13,7 +13,7 @@ class UserLoginRequest(BaseModel):
 class SuccessfulLoginResponse(BaseModel):
     access_token: str
     token_type: str
-    user: UserFromGateway = Field(description="The user who has just logged in")
+    user: OutputUser = Field(description="The user who has just logged in")
 
 
 class DecodedToken(BaseModel):

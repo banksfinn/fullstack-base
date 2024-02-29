@@ -1,20 +1,23 @@
 from pydantic import Field
 from schemas.base import (
-    EntityFromGateway,
+    OutputEntity,
     EntityCreateRequest,
-    EntityGetQuery,
-    EntityFromDatabase,
+    GetEntitiesQuery,
+    DatabaseEntity,
     EntityUpdateRequest,
     EntityDeleteRequest,
+    GetEntitiesResponse,
 )
 
 
-class ItemFromGateway(EntityFromGateway):
+class OutputItem(OutputEntity):
     label: str = Field(description="The label of the item")
+    raw_label: str = Field(description="The original label")
 
 
-class ItemFromDatabase(EntityFromDatabase):
-    pass
+class DatabaseItem(DatabaseEntity):
+    label: str = Field(description="The label of the item")
+    raw_label: str = Field(description="The original label")
 
 
 class ItemCreateRequest(EntityCreateRequest):
@@ -22,12 +25,15 @@ class ItemCreateRequest(EntityCreateRequest):
 
 
 class ItemUpdateRequest(EntityUpdateRequest):
-    pass
+    label: str | None = Field(description="The new label of the item")
 
 
 class ItemDeleteRequest(EntityDeleteRequest):
     pass
 
 
-class ItemGetQuery(EntityGetQuery):
+class GetItemsQuery(GetEntitiesQuery):
     pass
+
+
+GetItemsResponse = GetEntitiesResponse[OutputItem]

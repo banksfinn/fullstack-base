@@ -1,9 +1,18 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Literal
+from resources.all import EntityState
+from typing import Literal, Generic, TypeVar
+
+Item = TypeVar("Item")
 
 
-class EntityFromDatabase(BaseModel):
+class GetEntitiesResponse(BaseModel, Generic[Item]):
+    """Response class with items and metadata"""
+
+    items: list[Item] = Field(description="The list of items requested.")
+
+
+class DatabaseEntity(BaseModel):
     id: str = Field(description="The UUID of the entity", alias="_id")
     created_at: datetime = Field(description="The time that this article was created")
     updated_by: str = Field(description="The user id who last updated this article")
@@ -12,10 +21,13 @@ class EntityFromDatabase(BaseModel):
 
     user_id: str = Field(description="The user who created this entity")
 
+    entity_state: EntityState = Field(description="The state of the entity")
 
-class EntityFromGateway(BaseModel):
+
+class OutputEntity(BaseModel):
     id: str = Field(description="The UUID of the entity")
     user_id: str = Field(description="The user who created this entity")
+    entity_state: EntityState = Field(description="The state of the entity")
 
 
 class EntityUpdateRequest(BaseModel):
@@ -30,7 +42,7 @@ class EntityCreateRequest(BaseModel):
     pass
 
 
-class EntityGetQuery(BaseModel):
+class GetEntitiesQuery(BaseModel):
     offset: int = Field(
         title="Offset",
         description="How many offset items from the beginning to skip",
@@ -50,3 +62,5 @@ class EntityGetQuery(BaseModel):
     user_id: str | None = Field(
         title="User ID", description="Filter by this specific user ID", default=None
     )
+
+    entity_state: EntityState | None = Field(description="The state of the entity", default=None)

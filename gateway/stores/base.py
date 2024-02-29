@@ -1,25 +1,31 @@
 from typing import Any
-from schemas.users import UserFromGateway
+from schemas.users import OutputUser
 from schemas.base import (
-    EntityGetQuery,
-    EntityFromGateway,
+    GetEntitiesQuery,
+    DatabaseEntity,
+    OutputEntity,
     EntityCreateRequest,
     EntityDeleteRequest,
     EntityUpdateRequest,
+    GetEntitiesResponse,
 )
+from resources.all import EntityState
 from fastapi import HTTPException, status
 from uuid import uuid4, UUID
-from pydantic import BaseModel
 from datetime import datetime
 from structlog import get_logger
 from pymongo import MongoClient
+from http import HTTPStatus
 
 
 class BaseStore:
     collection_name: str
-    entity_from_database_model: BaseModel
-    entity_from_gateway_model: BaseModel
+    database_entity: DatabaseEntity
+    output_entity: OutputEntity
+    base_response_model: GetEntitiesResponse
+    query: GetEntitiesQuery
     db_name = "fullstack-base"
+    conflicting_fields: list[str] = []
 
     def __init__(self):
         # TODO: Switch this to enterprise
@@ -45,33 +51,58 @@ class BaseStore:
 
         return entity_info
 
-    def convert_database_object_to_gateway_object(self, entity: BaseModel) -> BaseModel:
+    def convert_database_entity_to_output_entity(self, entity: DatabaseEntity) -> OutputEntity:
         """Convert a database model to gateway."""
         # TODO: Test a better conversion between models than a straight model dump
-        return self.entity_from_gateway_model(**entity.model_dump())
+        return self.output_entity(**entity.model_dump())
 
-    def convert_database_raw_dictionary_to_database_object(self, entity: Any) -> BaseModel:
+    def convert_raw_dictionary_to_database_entity(self, entity: dict[str, Any]) -> DatabaseEntity:
         """Convert a database dict to database model."""
-        return self.entity_from_database_model(**entity)
+        return self.database_entity(**entity)
 
-    def convert_database_raw_dictionary_to_gateway_object(self, entity: Any) -> BaseModel:
-        """Convert a database dict to gateway model."""
-        return self.convert_database_object_to_gateway_object(
-            self.entity_from_database_model(**entity)
+    def convert_raw_dictionary_to_output_entity(self, entity: dict[str, Any]) -> OutputEntity:
+        """Convert a database dict to database model."""
+        return self.convert_database_entity_to_output_entity(
+            self.convert_raw_dictionary_to_database_entity(entity)
         )
 
     # Getting entities
 
-    def handle_get_entities_query_filters(self, query: EntityGetQuery, search: dict[str, Any]):
+    def _search_query_extras(self, query: GetEntitiesQuery, search: dict[str, Any]):
         # Common filters
         return search
 
-    def get_entities(self, query: EntityGetQuery) -> list[EntityFromGateway]:
+    def _search_query_base(self, query: GetEntitiesQuery, search: dict[str, Any]):
+        # Common filters
+        if query.entity_state is None:
+            search["entity_state"] = "ACTIVE"
+        return search
+
+    def check_for_conflicts(self, entity_request: EntityCreateRequest | EntityUpdateRequest):
+        for field in self.conflicting_fields:
+            if hasattr(entity_request, field):
+                search_response = self.search(
+                    query=self.query(**{field: getattr(entity_request, field)})
+                )
+                if not hasattr(entity_request, "id") and search_response.items:
+                    raise HTTPException(
+                        HTTPStatus.CONFLICT,
+                        f"An entity with {field} of {getattr(entity_request, field)} already exists",
+                    )
+
+                for item in search_response.items:
+                    if item.id != entity_request.id:
+                        raise HTTPException(
+                            HTTPStatus.CONFLICT, f"An entity with field {field} already exists"
+                        )
+
+    def search(self, query: GetEntitiesQuery) -> GetEntitiesResponse:
         # Create the search
         search: dict[str, Any] = {}
 
         # Apply entity specific filtering
-        search = self.handle_get_entities_query_filters(query, search)
+        search = self._search_query_base(query, search)
+        search = self._search_query_extras(query, search)
 
         sort_mode = {query.order_by: 1 if query.direction == "asc" else -1}
 
@@ -86,83 +117,39 @@ class BaseStore:
             self.store().find(search, limit=query.limit, skip=query.offset).sort(sort_mode)
         )
         self.logger.info("Executed Get Entities Search")
-        return [self.convert_database_raw_dictionary_to_gateway_object(e) for e in entities]
+        return self.base_response_model(
+            items=[self.convert_raw_dictionary_to_output_entity(e) for e in entities]
+        )
+
+    def get(self, id: str, user: OutputUser) -> OutputEntity | None:
+        raw_entity = self.store().find_one({"_id": id, "user_id": user.user_id})
+        if not raw_entity:
+            return None
+        return self.convert_raw_dictionary_to_output_entity(raw_entity)
 
     # Adding a new entity
 
-    def add_creation_timing_information(
-        self, entity_data: dict[str, Any], now: str
+    def _create_mutation_base(
+        self, entity_data: dict[str, Any], user: OutputUser, now: str
     ) -> dict[str, Any]:
         entity_data["created_at"] = now
         entity_data["updated_at"] = now
-
-        return entity_data
-
-    def add_creation_user_information(
-        self, entity_data: dict[str, Any], user: UserFromGateway
-    ) -> dict[str, Any]:
         entity_data["updated_by"] = user.id
         entity_data["created_by"] = user.id
         entity_data["user_id"] = user.id
+        entity_data["entity_state"] = EntityState.ACTIVE
 
         return entity_data
 
-    def add_creation_request_data(
-        self, entity_data: dict[str, Any], user: UserFromGateway, now: str
-    ) -> dict[str, Any]:
-        entity_data = self.add_creation_timing_information(entity_data, now)
-        entity_data = self.add_creation_user_information(entity_data, user)
-
-        return entity_data
-
-    def add_creation_request_data_no_user(
-        self, entity_data: dict[str, Any], now: str
-    ) -> dict[str, Any]:
-        entity_data = self.add_creation_timing_information(entity_data, now)
-
-        return entity_data
-
-    def handle_create_entity_mutations(
-        self, entity_info: dict[str, Any], user: UserFromGateway
-    ) -> dict[str, Any]:
+    def _create_mutation_extras(self, entity_info: dict[str, Any]) -> dict[str, Any]:
         pass
 
-    def handle_create_entity_mutations_no_user(self, entity_info: dict[str, Any]) -> dict[str, Any]:
-        pass
-
-    def create_entity_no_user(
-        self, entity_create_request: EntityCreateRequest
-    ) -> EntityFromGateway:
+    def create(self, creation_request: EntityCreateRequest, user: OutputUser) -> OutputEntity:
         # Store the time, generate the UUID
         now = datetime.now()
-        new_id = self.generate_id()
 
-        # Generate the dictionary that we are uploading
-        entity_info = entity_create_request.model_dump()
-        entity_info["_id"] = new_id
+        self.check_for_conflicts(creation_request)
 
-        # Add relevant database info
-        self.add_creation_request_data_no_user(entity_info, now)
-
-        # TODO: Turn all defaults into reasonable items, like "" for None on string
-        self.handle_create_entity_mutations_no_user(entity_info)
-
-        self.sanitize_database_entity(entity_info)
-
-        # Also a sanity check, to ensure everything going into the database is kosher
-        output_entity: BaseModel = self.convert_database_raw_dictionary_to_gateway_object(
-            entity_info
-        )
-
-        self.store().insert_one(entity_info)
-
-        return output_entity
-
-    def create_entity(
-        self, creation_request: EntityCreateRequest, user: UserFromGateway
-    ) -> EntityFromGateway:
-        # Store the time, generate the UUID
-        now = datetime.now()
         new_id = self.generate_id()
 
         # Generate the dictionary that we are uploading
@@ -170,42 +157,40 @@ class BaseStore:
         entity_info["_id"] = new_id
 
         # Add relevant database info
-        self.add_creation_request_data(entity_info, user, now)
+        self._create_mutation_base(entity_info, user, now)
 
         # TODO: Turn all defaults into reasonable items, like "" for None on string
-        self.handle_create_entity_mutations(entity_info, user)
-
+        self._create_mutation_extras(entity_info)
         self.sanitize_database_entity(entity_info)
 
         # Also a sanity check, to ensure everything going into the database is kosher
-        output_entity: BaseModel = self.convert_database_raw_dictionary_to_gateway_object(
-            entity_info
-        )
+        database_entity = self.convert_raw_dictionary_to_database_entity(entity_info)
+        output_entity = self.convert_database_entity_to_output_entity(database_entity)
 
-        self.store().insert_one(entity_info)
+        self.store().insert_one(database_entity.model_dump(by_alias=True))
 
         return output_entity
 
     # Updating an entity
 
-    def add_update_request_data(
-        self, entity_data: dict[str, Any], user: UserFromGateway, now: str
+    def _update_mutation_base(
+        self, entity_data: dict[str, Any], user: OutputUser, now: str
     ) -> dict[str, Any]:
         entity_data["updated_by"] = user.user_id
         entity_data["updated_at"] = now
 
         return entity_data
 
-    def handle_update_entity_mutations(
-        self, entity_info: dict[str, Any], user: UserFromGateway
+    def _update_mutation_extras(
+        self, entity_info: dict[str, Any], user: OutputUser
     ) -> dict[str, Any]:
         pass
 
-    def update_entity(
-        self, update_request: EntityUpdateRequest, user: UserFromGateway
-    ) -> EntityFromGateway:
+    def update(self, update_request: EntityUpdateRequest, user: OutputUser) -> OutputEntity:
         # Store the time
         now = datetime.now()
+
+        self.check_for_conflicts(update_request)
 
         # Get the existing document
         update_info = update_request.model_dump(exclude_defaults=True)
@@ -226,40 +211,41 @@ class BaseStore:
         self.logger.info("Entity Database Merge After", merged_entity_info=merged_entity_info)
 
         # Add relevant database info
-        self.add_update_request_data(merged_entity_info, user, now)
-
-        # TODO: Turn all defaults into reasonable items, like "" for None on string
-        self.handle_update_entity_mutations(merged_entity_info, user)
+        self._update_mutation_base(merged_entity_info, user, now)
+        self._update_mutation_extras(merged_entity_info, user)
 
         self.sanitize_database_entity(merged_entity_info)
 
         # Sanity check, to ensure everything going into the database is kosher
-        output_entity: BaseModel = self.convert_database_raw_dictionary_to_gateway_object(
-            merged_entity_info
-        )
+        # Also a sanity check, to ensure everything going into the database is kosher
+        database_entity = self.convert_raw_dictionary_to_database_entity(merged_entity_info)
+        output_entity = self.convert_database_entity_to_output_entity(database_entity)
 
         existing_entity = self.store().update_one({"_id": entity_id}, {"$set": merged_entity_info})
 
         return output_entity
 
-    def delete_entity(
-        self, deletion_request: EntityDeleteRequest, user: UserFromGateway
-    ) -> EntityFromGateway:
+    def delete(self, deletion_request: EntityDeleteRequest, user: OutputUser) -> OutputEntity:
         """Delete an entity"""
         self.logger.info(
             "Entity deletion request", deletion_request=deletion_request, current_user=user
         )
-        existing_entity = self.store().find_one_and_delete(
-            {"_id": deletion_request.id, "user_id": user.user_id}
-        )
+        existing_entity = self.get(deletion_request.id, user)
+
         if not existing_entity:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Unable to locate entity with that id",
             )
 
-        output_entity: BaseModel = self.convert_database_raw_dictionary_to_gateway_object(
-            existing_entity
-        )
-
-        return output_entity
+        if existing_entity.entity_state == EntityState.DELETED:
+            self.logger.info(
+                "Entity permanent deletion", deletion_request=deletion_request, current_user=user
+            )
+            self.store().find_one_and_delete({"_id": deletion_request.id, "user_id": user.user_id})
+            return existing_entity
+        else:
+            self.store().update_one(
+                {"_id": deletion_request.id}, {"$set": {"entity_state": "DELETED"}}
+            )
+            return self.convert_raw_dictionary_to_output_entity(existing_entity)

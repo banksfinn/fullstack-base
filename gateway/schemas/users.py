@@ -1,22 +1,23 @@
 from pydantic import BaseModel, Field
 from schemas.base import (
-    EntityFromDatabase,
-    EntityGetQuery,
-    EntityFromGateway,
+    DatabaseEntity,
+    GetEntitiesQuery,
+    OutputEntity,
     EntityUpdateRequest,
     EntityCreateRequest,
     EntityDeleteRequest,
+    GetEntitiesResponse,
 )
 
 
 # Base Objects
-class UserFromDatabase(EntityFromDatabase):
+class DatabaseUser(DatabaseEntity):
     display_name: str = Field(description="The display name of the user")
     user_email: str = Field(description="The email of the user")
     hashed_password: str = Field(description="The stored and hashed password of the user")
 
 
-class UserFromGateway(EntityFromGateway):
+class OutputUser(OutputEntity):
     display_name: str = Field(description="The display name of the user")
     user_email: str = Field(description="The email of the user")
     hashed_password: str = Field(description="The stored and hashed password of the user")
@@ -48,5 +49,8 @@ class UserDeleteRequestByEmail(BaseModel):
     user_email: str = Field(description="The display name of the user to delete")
 
 
-class UserGetQuery(EntityGetQuery):
+class GetUsersQuery(GetEntitiesQuery):
     pass
+
+
+GetUsersResponse = GetEntitiesResponse[OutputUser]
