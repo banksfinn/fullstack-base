@@ -1,9 +1,11 @@
-# Running in Docker
-
-Make sure you have gcloud set up locally first
+# Local Development
 
 ```
-docker compose up --build
+./start
 ```
 
-# The Gateway
+# Running Tests
+
+```
+pytest .
+```

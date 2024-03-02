@@ -50,7 +50,8 @@ class UserDeleteRequestByEmail(BaseModel):
 
 
 class GetUsersQuery(GetEntitiesQuery):
-    pass
+    display_name: str | None = Field(description="Filter by this display name", default=None)
+    user_email: str | None = Field(description="Filter by this user email", default=None)
 
 
 GetUsersResponse = GetEntitiesResponse[OutputUser]

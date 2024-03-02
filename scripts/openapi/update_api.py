@@ -3,7 +3,7 @@ import requests
 # Download the API
 import json
 
-url = "http://localhost:6523"
+url = "http://localhost:6524"
 
 try:
     r = requests.get(url + "/openapi.json")

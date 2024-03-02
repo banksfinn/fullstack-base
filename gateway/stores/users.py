@@ -20,6 +20,15 @@ class UserStore(BaseStore):
     query = GetUsersQuery
     conflicting_fields = ["display_name", "user_email"]
 
+    def _search_query_extras(self, query: GetUsersQuery, search: dict[str, Any]):
+        if getattr(query, "display_name", None) is not None:
+            search["display_name"] = query.display_name
+
+        if getattr(query, "user_email", None) is not None:
+            search["user_email"] = query.user_email
+
+        return super()._search_query_extras(query, search)
+
     def get_user_from_database_by_email(self, user_email: str) -> OutputUser | None:
         """Get the requested user via email."""
         entity = self.store().find_one({"user_email": user_email})

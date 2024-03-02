@@ -15,7 +15,7 @@ from api.deps import (
 router = APIRouter()
 
 
-@router.get("/items")
+@router.get("/items", tags=["items"])
 def get_items(
     get_items_query: GetItemsQuery = Depends(),
 ) -> GetItemsResponse:
@@ -25,7 +25,7 @@ def get_items(
     return item_store.search(get_items_query)
 
 
-@router.post("/items")
+@router.post("/items", tags=["items"])
 def create_item(
     item_create_request: ItemCreateRequest, current_user: CurrentUserDependency
 ) -> OutputItem:
@@ -33,7 +33,7 @@ def create_item(
     return item_store.create(item_create_request, current_user)
 
 
-@router.patch("/items")
+@router.patch("/items", tags=["items"])
 def update_item(
     item_update_request: ItemUpdateRequest, current_user: CurrentUserDependency
 ) -> OutputItem:
@@ -41,7 +41,7 @@ def update_item(
     return item_store.update(item_update_request, current_user)
 
 
-@router.delete("/items")
+@router.delete("/items", tags=["items"])
 def delete_item(
     item_delete_request: ItemDeleteRequest, current_user: CurrentUserDependency
 ) -> OutputItem:

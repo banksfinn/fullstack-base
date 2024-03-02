@@ -1,5 +1,5 @@
 #!/bin/bash
-set -o pipefail
+set -eou pipefail
 # This assumes that this already has requirements installed
 source scripts/venv/bin/activate
 python scripts/openapi/update_api.py

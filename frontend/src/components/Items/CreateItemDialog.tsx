@@ -1,51 +1,74 @@
-import { Box, Dialog, TextField, Typography } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers";
-import dayjs from "dayjs";
+import { Box, Button, Dialog, TextField, Typography } from "@mui/material";
+import { useDispatch } from "react-redux";
+import { useCreateItemItemsPostMutation } from "src/clients/generatedGatewayClient";
+import {
+    updateLabel,
+    useItemCreationState,
+} from "src/store/components/createItemSlice";
 
 interface CreateItemDialogProps {
-  open: boolean;
-  onClose: () => void;
+    open: boolean;
+    onClose: () => void;
 }
 
 const CreateItemDialog = (props: CreateItemDialogProps) => {
-  const { open, onClose } = props;
+    const { open, onClose } = props;
+    const dispatch = useDispatch();
+    const itemState = useItemCreationState();
 
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      sx={{ display: "flex", flexDirection: "column" }}
-    >
-      <Box sx={{ p: 4 }}>
-        <Box sx={{ width: "100%", height: "64px" }}>
-          <Typography>Create Item</Typography>
-        </Box>
-        <Box sx={{ width: "100%", height: "calc(100% - 64px)" }}>
-          Date
-          <Box sx={{ flexDirection: "row" }}>
-            <DatePicker value={dayjs()} />
-          </Box>
-          Name and Cost
-          <Box sx={{ flexDirection: "row" }}>
-            <TextField label="Name"></TextField>
-            <TextField label="Cost" type="number"></TextField>
-          </Box>
-          Insitutions Add
-          <Box>
-            <TextField label="From"></TextField>
-            <TextField label="To"></TextField>
-          </Box>
-          Description
-          <Box>
-            <TextField
-              label="Description"
-              multiline={true}
-              rows={4}
-            ></TextField>
-          </Box>
-        </Box>
-      </Box>
-    </Dialog>
-  );
+    const handleRawLabelChange = (
+        event: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+        dispatch(updateLabel(event.target.value));
+    };
+
+    const [createItem] = useCreateItemItemsPostMutation();
+
+    const handleSubmit = () => {
+        createItem({ itemCreateRequest: itemState });
+        onClose();
+    };
+
+    return (
+        <Dialog
+            open={open}
+            onClose={onClose}
+            sx={{ display: "flex", flexDirection: "column" }}
+        >
+            <Box
+                sx={{
+                    p: 4,
+                    width: "500px",
+                    display: "flex",
+                    flexDirection: "column",
+                }}
+            >
+                <Box sx={{ width: "100%", my: 2, mb: 4 }}>
+                    <Typography variant="h4">Create Item</Typography>
+                </Box>
+                <Box
+                    sx={{
+                        justifyContent: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                    }}
+                >
+                    <TextField
+                        label="Raw Label"
+                        value={itemState.raw_label}
+                        onChange={handleRawLabelChange}
+                        fullWidth
+                    ></TextField>
+                    <Button
+                        sx={{ alignSelf: "flex-end", mt: 4 }}
+                        variant="contained"
+                        onClick={() => handleSubmit()}
+                    >
+                        Submit
+                    </Button>
+                </Box>
+            </Box>
+        </Dialog>
+    );
 };
 export default CreateItemDialog;
