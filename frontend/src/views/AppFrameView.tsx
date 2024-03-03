@@ -1,4 +1,4 @@
-import { DynamicFeed, Menu as MenuIcon } from "@mui/icons-material";
+import { DynamicFeed, Insights, Menu as MenuIcon } from "@mui/icons-material";
 import {
     AppBar,
     Avatar,
@@ -37,6 +37,11 @@ const navigationLocations: NavigationLocation[] = [
         name: "Items",
         route: "/items",
         icon: <DynamicFeed />,
+    },
+    {
+        name: "Insights",
+        route: "/insights",
+        icon: <Insights />,
     },
 ];
 

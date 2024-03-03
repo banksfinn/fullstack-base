@@ -22,10 +22,13 @@ export const createItemSlice = createSlice({
             state.raw_label = action.payload;
             return state;
         },
+        clearCreateForm: () => {
+            return initialState;
+        },
     },
 });
 
-export const { updateLabel } = createItemSlice.actions;
+export const { updateLabel, clearCreateForm } = createItemSlice.actions;
 export const getItemCreationState = (state: RootState) => state.createItemSlice;
 export const useItemCreationState = (): CreateItemState => {
     return useAppSelector(getItemCreationState);

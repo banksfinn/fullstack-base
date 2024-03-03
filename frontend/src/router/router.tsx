@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import InsightsView from "src/views/InsightsView";
 import ItemView from "src/views/ItemView";
 import LoginView from "src/views/LoginView";
 import ProfileView from "src/views/ProfileView";
@@ -16,6 +17,7 @@ const Router = () => {
             <Route path="/register" element={<RegisterView />} />
             <Route path="/login" element={<LoginView />} />
             <Route path="/profile" element={<ProfileView />} />
+            <Route path="/insights" element={<InsightsView />} />
         </Routes>
     );
 };

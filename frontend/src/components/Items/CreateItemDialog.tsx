@@ -2,6 +2,7 @@ import { Box, Button, Dialog, TextField, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { useCreateItemMutation } from "src/clients/generatedGatewayClient";
 import {
+    clearCreateForm,
     updateLabel,
     useItemCreationState,
 } from "src/store/components/createItemSlice";
@@ -27,6 +28,7 @@ const CreateItemDialog = (props: CreateItemDialogProps) => {
 
     const handleSubmit = () => {
         createItem({ itemCreateRequest: itemState });
+        dispatch(clearCreateForm());
         onClose();
         dispatch(
             addSnackbarMessage({

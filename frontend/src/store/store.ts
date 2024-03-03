@@ -6,6 +6,7 @@ import registerUserSlice from "./components/registerUserSlice";
 import loginUserSlice from "./components/loginUserSlice";
 import snackbarSlice from "./components/snackbarSlice";
 import itemTableSlice from "./components/itemTableSlice";
+import { apiErrorMiddleware } from "./errorMiddleware";
 
 export const store = configureStore({
     reducer: {
@@ -18,7 +19,10 @@ export const store = configureStore({
         itemTableSlice: itemTableSlice,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(baseGatewayClient.middleware),
+        getDefaultMiddleware().concat(
+            baseGatewayClient.middleware,
+            apiErrorMiddleware,
+        ),
 });
 
 export type AppDispatch = typeof store.dispatch;
