@@ -1,12 +1,16 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { useAppSelector } from "../hooks";
 import { RootState } from "../store";
-import { ItemCreateRequest } from "src/clients/generatedGatewayClient";
+import {
+    ItemCreateRequest,
+    ItemType,
+} from "src/clients/generatedGatewayClient";
 
 interface CreateItemState extends ItemCreateRequest {}
 
 const initialState: CreateItemState = {
     raw_label: "",
+    item_type: ItemType.TypeA,
 };
 
 export const createItemSlice = createSlice({

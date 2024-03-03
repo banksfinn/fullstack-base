@@ -1,6 +1,6 @@
 import { Box, Button, Dialog, TextField, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { useCreateItemItemsPostMutation } from "src/clients/generatedGatewayClient";
+import { useCreateItemMutation } from "src/clients/generatedGatewayClient";
 import {
     updateLabel,
     useItemCreationState,
@@ -23,7 +23,7 @@ const CreateItemDialog = (props: CreateItemDialogProps) => {
         dispatch(updateLabel(event.target.value));
     };
 
-    const [createItem] = useCreateItemItemsPostMutation();
+    const [createItem] = useCreateItemMutation();
 
     const handleSubmit = () => {
         createItem({ itemCreateRequest: itemState });

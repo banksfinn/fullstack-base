@@ -1,11 +1,14 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-
+from fastapi.routing import APIRoute
 from api.router import api_router
 
-app = FastAPI(
-    title="INSERT_TITLE_HERE",
-)
+
+def generate_unique_id(route: APIRoute):
+    return f"{route.name}"
+
+
+app = FastAPI(title="Sample Project", generate_unique_id_function=generate_unique_id)
 
 app.add_middleware(
     CORSMiddleware,

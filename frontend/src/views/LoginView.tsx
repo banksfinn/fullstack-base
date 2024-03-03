@@ -1,7 +1,7 @@
 import { Box, Button, Dialog, TextField, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { useHandleUserLoginLoginTokenPostMutation } from "src/clients/generatedGatewayClient";
+import { useHandleUserLoginMutation } from "src/clients/generatedGatewayClient";
 import { updateUserState } from "src/store/components/authSlice";
 import {
     updateLoginUserEmail,
@@ -15,7 +15,7 @@ const LoginView = () => {
     const navigate = useNavigate();
     const loginState = useLoginState();
 
-    const [login] = useHandleUserLoginLoginTokenPostMutation();
+    const [login] = useHandleUserLoginMutation();
 
     const handleSubmit = () => {
         login({ userLoginRequest: loginState })

@@ -23,7 +23,8 @@ class ItemStore(BaseStore):
     def _search_query_extras(self, query: GetItemsQuery, search: dict[str, Any]):
         if getattr(query, "label", None) is not None:
             search["label"] = query.label
-
+        if getattr(query, "item_type", None) is not None:
+            search["item_type"] = query.item_type
         return super()._search_query_extras(query, search)
 
 

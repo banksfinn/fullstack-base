@@ -7,7 +7,6 @@ export const baseGatewayClient = createApi({
         baseUrl: "/api/gateway",
         prepareHeaders: (headers) => {
             const user = getUserStateFromCookie();
-            console.log(user);
             if (user?.accessToken) {
                 headers.set("Authorization", "Bearer " + user?.accessToken);
                 return headers;

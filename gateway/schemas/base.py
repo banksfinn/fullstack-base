@@ -28,6 +28,8 @@ class OutputEntity(BaseModel):
     id: str = Field(description="The UUID of the entity")
     user_id: str = Field(description="The user who created this entity")
     entity_state: EntityState = Field(description="The state of the entity")
+    created_at: datetime = Field(description="The time that this article was created")
+    updated_at: datetime = Field(description="The time that this article was last updated")
 
 
 class EntityUpdateRequest(BaseModel):

@@ -1,6 +1,6 @@
 import { Box, Button, Dialog, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { useDeleteItemItemsDeleteMutation } from "src/clients/generatedGatewayClient";
+import { useDeleteItemMutation } from "src/clients/generatedGatewayClient";
 
 import { addSnackbarMessage } from "src/store/components/snackbarSlice";
 
@@ -14,7 +14,7 @@ const DeleteItemDialog = (props: DeleteItemDialogProps) => {
     const { open, onClose } = props;
     const dispatch = useDispatch();
 
-    const [deleteItem] = useDeleteItemItemsDeleteMutation();
+    const [deleteItem] = useDeleteItemMutation();
 
     const handleSubmit = () => {
         deleteItem({ itemDeleteRequest: { id: props.itemId } });

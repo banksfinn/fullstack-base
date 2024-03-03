@@ -8,6 +8,7 @@ const config: ConfigFile = {
   exportName: "gatewayClientEndpoints",
   hooks: true,
   tag: true,
+  useEnumType: true,
 };
 
 export default config;

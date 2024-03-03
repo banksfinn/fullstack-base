@@ -6,7 +6,8 @@ import {
     GridPaginationModel,
     GridSortModel,
 } from "@mui/x-data-grid";
-import { GetItemsItemsGetApiArg } from "src/clients/generatedGatewayClient";
+import { GetItemsApiArg } from "src/clients/generatedGatewayClient";
+import { convertToCamelCase } from "src/utils/helpers";
 
 interface ItemTableState {
     paginationModel: GridPaginationModel;
@@ -75,7 +76,7 @@ const getItemTableSortParsed = (state: ItemTableState): ItemTableSort => {
     }
 };
 
-export const useItemTableQuery = (): GetItemsItemsGetApiArg => {
+export const useItemTableQuery = (): GetItemsApiArg => {
     const curState = useAppSelector(getItemTableState);
     const sortState = getItemTableSortParsed(curState);
 
@@ -88,11 +89,10 @@ export const useItemTableQuery = (): GetItemsItemsGetApiArg => {
     };
 
     for (const filter of curState.filterModel.items) {
+        // We need to convert it to camel case
         // @ts-expect-error Unable to map the raw filter model to our query
-        query[filter.field] = filter.value;
+        query[convertToCamelCase(filter.field)] = filter.value;
     }
-
-    console.log(query);
 
     return query;
 };

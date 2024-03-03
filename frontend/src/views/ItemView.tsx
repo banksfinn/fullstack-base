@@ -7,14 +7,18 @@ import {
     GridRowModel,
     GridRowSelectionModel,
     GridSortModel,
+    GridValueFormatterParams,
+    GridValueGetterParams,
 } from "@mui/x-data-grid";
+import dayjs from "dayjs";
 import { useCallback, useState } from "react";
 import { useDispatch } from "react-redux";
 import { ErrorResponse } from "react-router-dom";
 import {
     OutputItem,
-    useGetItemsItemsGetQuery,
-    useUpdateItemItemsPatchMutation,
+    ItemType,
+    useGetItemsQuery,
+    useUpdateItemMutation,
 } from "src/clients/generatedGatewayClient";
 import CreateItemDialog from "src/components/Items/CreateItemDialog";
 import DeleteItemDialog from "src/components/Items/DeleteItemDialog";
@@ -31,10 +35,40 @@ import { basicFullMatchOperator } from "src/utils/gridFilterOperators";
 const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 350, filterable: false },
     {
+        field: "created_at",
+        headerName: "Created",
+        width: 350,
+        filterable: false,
+        type: "datetime",
+        valueGetter: (date: GridValueGetterParams): Date | null => {
+            if (!date.value) {
+                return null;
+            }
+            return dayjs(date.value).toDate();
+        },
+        valueFormatter: (
+            date: GridValueFormatterParams<Date | null>,
+        ): string | null => {
+            if (!date) {
+                return null;
+            }
+            return dayjs(date.value).format("lll");
+        },
+    },
+    {
         field: "label",
         headerName: "Label",
         editable: true,
         filterOperators: basicFullMatchOperator,
+        width: 200,
+    },
+    {
+        field: "item_type",
+        headerName: "Type",
+        filterable: true,
+        editable: true,
+        type: "singleSelect",
+        valueOptions: Object.values(ItemType),
         width: 200,
     },
     {
@@ -53,9 +87,8 @@ const ItemView = () => {
     const itemTableState = useItemTableState();
 
     const query = useItemTableQuery();
-
-    const { data } = useGetItemsItemsGetQuery(query);
-    const [updateItem] = useUpdateItemItemsPatchMutation();
+    const { data } = useGetItemsQuery(query);
+    const [updateItem] = useUpdateItemMutation();
 
     const items: OutputItem[] = data?.items ?? [];
 
