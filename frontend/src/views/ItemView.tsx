@@ -102,17 +102,10 @@ const ItemView = () => {
             })
                 .unwrap()
                 .then((data: OutputItem) => {
-                    dispatch(
-                        addSnackbarMessage({
-                            message: "Edited item",
-                            severity: "success",
-                            duration: 5000,
-                        }),
-                    );
                     return data;
                 });
         },
-        [updateItem, dispatch],
+        [updateItem],
     );
 
     const handleCreateSnackbar = () => {

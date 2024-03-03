@@ -1,8 +1,5 @@
 import { Box, Button, Dialog, Typography } from "@mui/material";
-import { useDispatch } from "react-redux";
 import { useDeleteItemMutation } from "src/clients/generatedGatewayClient";
-
-import { addSnackbarMessage } from "src/store/components/snackbarSlice";
 
 interface DeleteItemDialogProps {
     open: boolean;
@@ -12,20 +9,12 @@ interface DeleteItemDialogProps {
 
 const DeleteItemDialog = (props: DeleteItemDialogProps) => {
     const { open, onClose } = props;
-    const dispatch = useDispatch();
 
     const [deleteItem] = useDeleteItemMutation();
 
     const handleSubmit = () => {
         deleteItem({ itemDeleteRequest: { id: props.itemId } });
         onClose();
-        dispatch(
-            addSnackbarMessage({
-                message: "Deleted item!",
-                severity: "success",
-                duration: 5000,
-            }),
-        );
     };
 
     return (

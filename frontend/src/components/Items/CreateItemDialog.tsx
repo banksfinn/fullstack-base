@@ -6,7 +6,6 @@ import {
     updateLabel,
     useItemCreationState,
 } from "src/store/components/createItemSlice";
-import { addSnackbarMessage } from "src/store/components/snackbarSlice";
 
 interface CreateItemDialogProps {
     open: boolean;
@@ -30,13 +29,6 @@ const CreateItemDialog = (props: CreateItemDialogProps) => {
         createItem({ itemCreateRequest: itemState });
         dispatch(clearCreateForm());
         onClose();
-        dispatch(
-            addSnackbarMessage({
-                message: "Created item!",
-                severity: "success",
-                duration: 5000,
-            }),
-        );
     };
 
     return (

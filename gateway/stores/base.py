@@ -257,4 +257,4 @@ class BaseStore:
             self.store().update_one(
                 {"_id": deletion_request.id}, {"$set": {"entity_state": "DELETED"}}
             )
-            return self.convert_raw_dictionary_to_output_entity(existing_entity)
+            return existing_entity
