@@ -25,6 +25,7 @@ const RegisterView = () => {
                 dispatch(
                     updateUserState({
                         accessToken: response.access_token,
+                        user: response.user,
                     }),
                 );
                 addSnackbarMessage({

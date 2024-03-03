@@ -3,21 +3,27 @@ import { RootState } from "../store";
 // import { OutputUser } from "src/clients/generatedGatewayClient";
 import { useAppSelector } from "../hooks";
 import { getCookie, removeCookie, setCookie } from "tiny-cookie";
+import { OutputUser } from "src/clients/generatedGatewayClient";
 
 interface UserState {
-    // user: OutputUser | null;
+    user: OutputUser | null;
     accessToken: string | null;
 }
 
-export const getAccessTokenFromCookie = (): string | null => {
-    return getCookie("accessToken");
+export const getUserStateFromCookie = (): UserState | null => {
+    const storedData = getCookie("userState");
+    if (!storedData) {
+        return null;
+    }
+    return JSON.parse(storedData);
 };
 
-export const setAccessTokenInCookie = (token: string | null) => {
-    if (!token) {
-        removeCookie("accessToken");
+export const setUserStateInCookie = (state: UserState | null) => {
+    console.log(state);
+    if (!state) {
+        removeCookie("userState");
     } else {
-        setCookie("accessToken", token);
+        setCookie("userState", JSON.stringify(state));
     }
 };
 
@@ -25,7 +31,7 @@ const loadUserState = (): UserState => {
     const data: string | null = localStorage.getItem("userState");
     if (data === null) {
         return {
-            // user: null,
+            user: null,
             accessToken: null,
         };
     }
@@ -34,18 +40,6 @@ const loadUserState = (): UserState => {
 
 const saveUserState = (state: UserState) => {
     localStorage.setItem("userState", JSON.stringify(state));
-};
-
-export const loadAccessToken = (): string | null => {
-    return localStorage.getItem("accessToken");
-};
-
-export const saveUserAccessToken = (token: string | null) => {
-    if (token) {
-        localStorage.setItem("accessToken", token);
-    } else {
-        localStorage.removeItem("accessToken");
-    }
 };
 
 const initialState: UserState = loadUserState();
@@ -58,14 +52,14 @@ export const authSlice = createSlice({
         updateUserState: (state, action: PayloadAction<UserState>) => {
             state = action.payload;
             saveUserState(state);
-            setAccessTokenInCookie(state.accessToken);
+            setUserStateInCookie(state);
             return state;
         },
         logoutUser: (state) => {
             // state.user = null;
             state.accessToken = null;
             saveUserState(state);
-            setAccessTokenInCookie(null);
+            setUserStateInCookie(null);
             return state;
         },
     },

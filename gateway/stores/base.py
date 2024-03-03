@@ -22,6 +22,7 @@ class BaseStore:
     collection_name: str
     database_entity: DatabaseEntity
     output_entity: OutputEntity
+    require_auth: bool
     base_response_model: GetEntitiesResponse
     query: GetEntitiesQuery
     db_name = "fullstack-base"
@@ -72,10 +73,12 @@ class BaseStore:
         # Common filters
         return search
 
-    def _search_query_base(self, query: GetEntitiesQuery, search: dict[str, Any]):
+    def _search_query_base(self, query: GetEntitiesQuery, user: OutputUser, search: dict[str, Any]):
         # Common filters
         if query.entity_state is None:
             search["entity_state"] = "ACTIVE"
+        if self.require_auth:
+            search["user_id"] = user.user_id
         return search
 
     def check_for_conflicts(self, entity_request: EntityCreateRequest | EntityUpdateRequest):
@@ -96,12 +99,12 @@ class BaseStore:
                             HTTPStatus.CONFLICT, f"An entity with field {field} already exists"
                         )
 
-    def search(self, query: GetEntitiesQuery) -> GetEntitiesResponse:
+    def search(self, query: GetEntitiesQuery, user: OutputUser) -> GetEntitiesResponse:
         # Create the search
         search: dict[str, Any] = {}
 
         # Apply entity specific filtering
-        search = self._search_query_base(query, search)
+        search = self._search_query_base(query, user, search)
         search = self._search_query_extras(query, search)
 
         sort_mode = {query.order_by: 1 if query.direction == "asc" else -1}

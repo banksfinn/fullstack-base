@@ -16,11 +16,13 @@ router = APIRouter()
 
 
 @router.get("/users")
-def get_users(query: GetUsersQuery = Depends()) -> GetUsersResponse:
+def get_users(
+    current_user: CurrentUserDependency, query: GetUsersQuery = Depends()
+) -> GetUsersResponse:
     """
     Retrieve users.
     """
-    return user_store.search(query)
+    return user_store.search(query, current_user)
 
 
 @router.get("/me")

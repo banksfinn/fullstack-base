@@ -19,6 +19,7 @@ class UserStore(BaseStore):
     base_response_model = GetUsersResponse
     query = GetUsersQuery
     conflicting_fields = ["display_name", "user_email"]
+    require_auth = True
 
     def _search_query_extras(self, query: GetUsersQuery, search: dict[str, Any]):
         if getattr(query, "display_name", None) is not None:

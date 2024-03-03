@@ -1,5 +1,13 @@
 import { Box, Button } from "@mui/material";
-import { DataGrid, GridColDef, GridRowModel } from "@mui/x-data-grid";
+import {
+    DataGrid,
+    GridColDef,
+    GridFilterModel,
+    GridPaginationModel,
+    GridRowModel,
+    GridRowSelectionModel,
+    GridSortModel,
+} from "@mui/x-data-grid";
 import { useCallback, useState } from "react";
 import { useDispatch } from "react-redux";
 import { ErrorResponse } from "react-router-dom";
@@ -9,27 +17,44 @@ import {
     useUpdateItemItemsPatchMutation,
 } from "src/clients/generatedGatewayClient";
 import CreateItemDialog from "src/components/Items/CreateItemDialog";
+import DeleteItemDialog from "src/components/Items/DeleteItemDialog";
+import {
+    updateFilterModel,
+    updatePaginationModel,
+    updateSortModel,
+    useItemTableQuery,
+    useItemTableState,
+} from "src/store/components/itemTableSlice";
 import { addSnackbarMessage } from "src/store/components/snackbarSlice";
+import { basicFullMatchOperator } from "src/utils/gridFilterOperators";
 
 const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 350 },
+    { field: "id", headerName: "ID", width: 350, filterable: false },
     {
         field: "label",
         headerName: "Label",
         editable: true,
+        filterOperators: basicFullMatchOperator,
         width: 200,
     },
     {
         field: "raw_label",
         headerName: "Raw Label",
+        filterable: false,
         width: 200,
     },
 ];
 
 const ItemView = () => {
     const [createItemDialog, setCreateItemDialog] = useState<boolean>(false);
+    const [deleteItemDialog, setDeleteItemDialog] = useState<boolean>(false);
+    const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
     const dispatch = useDispatch();
-    const { data } = useGetItemsItemsGetQuery({});
+    const itemTableState = useItemTableState();
+
+    const query = useItemTableQuery();
+
+    const { data } = useGetItemsItemsGetQuery(query);
     const [updateItem] = useUpdateItemItemsPatchMutation();
 
     const items: OutputItem[] = data?.items ?? [];
@@ -80,6 +105,39 @@ const ItemView = () => {
         [dispatch],
     );
 
+    const handleRowSelectionChange = useCallback(
+        (rowSelectionModel: GridRowSelectionModel) => {
+            if (!rowSelectionModel.length) {
+                setSelectedRowId(null);
+            } else {
+                setSelectedRowId(rowSelectionModel[0].toString());
+            }
+        },
+        [],
+    );
+
+    const handlePaginationModelChange = useCallback(
+        (newModel: GridPaginationModel) => {
+            dispatch(updatePaginationModel(newModel));
+        },
+        [dispatch],
+    );
+
+    const handleSortModelChange = useCallback(
+        (newModel: GridSortModel) => {
+            dispatch(updateSortModel(newModel));
+        },
+        [dispatch],
+    );
+
+    const handleFilterModelChange = useCallback(
+        (newModel: GridFilterModel) => {
+            console.log(newModel);
+            dispatch(updateFilterModel(newModel));
+        },
+        [dispatch],
+    );
+
     return (
         <Box
             sx={{
@@ -92,6 +150,11 @@ const ItemView = () => {
                 <CreateItemDialog
                     open={createItemDialog}
                     onClose={() => setCreateItemDialog(false)}
+                />
+                <DeleteItemDialog
+                    open={deleteItemDialog}
+                    onClose={() => setDeleteItemDialog(false)}
+                    itemId={selectedRowId ?? ""}
                 />
                 <Button
                     sx={{ mr: 1 }}
@@ -108,8 +171,9 @@ const ItemView = () => {
                     Create Item
                 </Button>
                 <Button
-                    onClick={() => setCreateItemDialog(true)}
+                    onClick={() => setDeleteItemDialog(true)}
                     variant="outlined"
+                    disabled={!selectedRowId}
                 >
                     Delete Item
                 </Button>
@@ -120,6 +184,16 @@ const ItemView = () => {
                     columns={columns}
                     processRowUpdate={processRowUpdate}
                     onProcessRowUpdateError={handleProcessRowUpdateError}
+                    onRowSelectionModelChange={handleRowSelectionChange}
+                    sortingMode="server"
+                    // TODO: Set up server filter
+                    filterMode="server"
+                    filterModel={itemTableState.filterModel}
+                    onFilterModelChange={handleFilterModelChange}
+                    paginationModel={itemTableState.paginationModel}
+                    onPaginationModelChange={handlePaginationModelChange}
+                    sortModel={itemTableState.sortModel}
+                    onSortModelChange={handleSortModelChange}
                 />
             </Box>
         </Box>

@@ -17,12 +17,13 @@ router = APIRouter()
 
 @router.get("/items", tags=["items"])
 def get_items(
+    current_user: CurrentUserDependency,
     get_items_query: GetItemsQuery = Depends(),
 ) -> GetItemsResponse:
     """
     Retrieve items.
     """
-    return item_store.search(get_items_query)
+    return item_store.search(get_items_query, current_user)
 
 
 @router.post("/items", tags=["items"])

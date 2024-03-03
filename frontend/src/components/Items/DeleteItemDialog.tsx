@@ -1,36 +1,27 @@
-import { Box, Button, Dialog, TextField, Typography } from "@mui/material";
+import { Box, Button, Dialog, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { useCreateItemItemsPostMutation } from "src/clients/generatedGatewayClient";
-import {
-    updateLabel,
-    useItemCreationState,
-} from "src/store/components/createItemSlice";
+import { useDeleteItemItemsDeleteMutation } from "src/clients/generatedGatewayClient";
+
 import { addSnackbarMessage } from "src/store/components/snackbarSlice";
 
-interface CreateItemDialogProps {
+interface DeleteItemDialogProps {
     open: boolean;
     onClose: () => void;
+    itemId: string;
 }
 
-const CreateItemDialog = (props: CreateItemDialogProps) => {
+const DeleteItemDialog = (props: DeleteItemDialogProps) => {
     const { open, onClose } = props;
     const dispatch = useDispatch();
-    const itemState = useItemCreationState();
 
-    const handleRawLabelChange = (
-        event: React.ChangeEvent<HTMLInputElement>,
-    ) => {
-        dispatch(updateLabel(event.target.value));
-    };
-
-    const [createItem] = useCreateItemItemsPostMutation();
+    const [deleteItem] = useDeleteItemItemsDeleteMutation();
 
     const handleSubmit = () => {
-        createItem({ itemCreateRequest: itemState });
+        deleteItem({ itemDeleteRequest: { id: props.itemId } });
         onClose();
         dispatch(
             addSnackbarMessage({
-                message: "Created item!",
+                message: "Deleted item!",
                 severity: "success",
                 duration: 5000,
             }),
@@ -52,7 +43,7 @@ const CreateItemDialog = (props: CreateItemDialogProps) => {
                 }}
             >
                 <Box sx={{ width: "100%", my: 2, mb: 4 }}>
-                    <Typography variant="h4">Create Item</Typography>
+                    <Typography variant="h4">Delete Item</Typography>
                 </Box>
                 <Box
                     sx={{
@@ -61,22 +52,16 @@ const CreateItemDialog = (props: CreateItemDialogProps) => {
                         flexDirection: "column",
                     }}
                 >
-                    <TextField
-                        label="Raw Label"
-                        value={itemState.raw_label}
-                        onChange={handleRawLabelChange}
-                        fullWidth
-                    ></TextField>
                     <Button
                         sx={{ alignSelf: "flex-end", mt: 4 }}
                         variant="contained"
                         onClick={() => handleSubmit()}
                     >
-                        Submit
+                        Confirm
                     </Button>
                 </Box>
             </Box>
         </Dialog>
     );
 };
-export default CreateItemDialog;
+export default DeleteItemDialog;

@@ -24,6 +24,7 @@ const LoginView = () => {
                 dispatch(
                     updateUserState({
                         accessToken: response.access_token,
+                        user: response.user,
                     }),
                 );
                 dispatch(

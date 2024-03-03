@@ -5,6 +5,7 @@ import createItemSlice from "./components/createItemSlice";
 import registerUserSlice from "./components/registerUserSlice";
 import loginUserSlice from "./components/loginUserSlice";
 import snackbarSlice from "./components/snackbarSlice";
+import itemTableSlice from "./components/itemTableSlice";
 
 export const store = configureStore({
     reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
         registerUserSlice: registerUserSlice,
         loginUserSlice: loginUserSlice,
         snackbarSlice: snackbarSlice,
+        itemTableSlice: itemTableSlice,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(baseGatewayClient.middleware),

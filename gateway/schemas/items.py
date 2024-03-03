@@ -33,7 +33,7 @@ class ItemDeleteRequest(EntityDeleteRequest):
 
 
 class GetItemsQuery(GetEntitiesQuery):
-    pass
+    label: str | None = Field(description="Filter by this label.", default=None)
 
 
 GetItemsResponse = GetEntitiesResponse[OutputItem]
