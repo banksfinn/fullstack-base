@@ -1,17 +1,24 @@
-import { AccountBox, DynamicFeed, Menu } from "@mui/icons-material";
+import { AccountBox, DynamicFeed, Menu as MenuIcon } from "@mui/icons-material";
 import {
     AppBar,
+    Avatar,
     Box,
     Drawer,
     IconButton,
     ListItem,
     ListItemText,
+    Menu,
+    MenuItem,
     Toolbar,
+    Tooltip,
     Typography,
     useTheme,
 } from "@mui/material";
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { logoutUser } from "src/store/components/authSlice";
+import { addSnackbarMessage } from "src/store/components/snackbarSlice";
 
 interface AppFrameViewProps {
     children: React.ReactNode;
@@ -41,8 +48,39 @@ const navigationLocations: NavigationLocation[] = [
 const AppFrameView = (props: AppFrameViewProps) => {
     const theme = useTheme();
     const location = useLocation();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const [avatarAnchor, setAvatarAnchor] = React.useState<null | HTMLElement>(
+        null,
+    );
+    const userMenuOpen = Boolean(avatarAnchor);
+
     const [navigationBarOpen, setNavigationBarOpen] =
         React.useState<boolean>(true);
+
+    const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAvatarAnchor(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAvatarAnchor(null);
+    };
+
+    const handleProfileClick = () => {
+        handleClose();
+        navigate("/profile");
+    };
+
+    const handleLogoutClick = () => {
+        handleClose();
+        dispatch(logoutUser());
+        dispatch(
+            addSnackbarMessage({
+                message: "Logged out successfully",
+                severity: "info",
+                duration: 5000,
+            }),
+        );
+    };
 
     const selected = (nav: NavigationLocation) =>
         location.pathname === nav.route;
@@ -63,18 +101,88 @@ const AppFrameView = (props: AppFrameViewProps) => {
                     }),
                 }}
             >
-                <Toolbar>
-                    <IconButton
-                        size="large"
-                        edge="start"
-                        color="inherit"
-                        aria-label="menu"
-                        sx={{ mr: 2 }}
-                        onClick={() => setNavigationBarOpen(!navigationBarOpen)}
+                <Toolbar
+                    sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                    }}
+                >
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <IconButton
+                            size="large"
+                            edge="start"
+                            color="inherit"
+                            aria-label="menu"
+                            sx={{ mr: 2 }}
+                            onClick={() =>
+                                setNavigationBarOpen(!navigationBarOpen)
+                            }
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <Typography>Project Title</Typography>
+                    </Box>
+                    <Tooltip title="Account settings">
+                        <IconButton
+                            onClick={handleAvatarClick}
+                            size="small"
+                            sx={{ ml: 2 }}
+                            aria-controls={
+                                userMenuOpen ? "account-menu" : undefined
+                            }
+                            aria-haspopup="true"
+                            aria-expanded={userMenuOpen ? "true" : undefined}
+                        >
+                            <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+                        </IconButton>
+                    </Tooltip>
+                    <Menu
+                        anchorEl={avatarAnchor}
+                        id="account-menu"
+                        open={userMenuOpen}
+                        onClose={handleClose}
+                        onClick={handleClose}
+                        PaperProps={{
+                            elevation: 0,
+                            sx: {
+                                overflow: "visible",
+                                filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                                mt: 1.5,
+                                "& .MuiAvatar-root": {
+                                    width: 32,
+                                    height: 32,
+                                    ml: -0.5,
+                                    mr: 1,
+                                },
+                                "&::before": {
+                                    content: '""',
+                                    display: "block",
+                                    position: "absolute",
+                                    top: 0,
+                                    right: 14,
+                                    width: 10,
+                                    height: 10,
+                                    bgcolor: "background.paper",
+                                    transform: "translateY(-50%) rotate(45deg)",
+                                    zIndex: 0,
+                                },
+                            },
+                        }}
+                        transformOrigin={{
+                            horizontal: "right",
+                            vertical: "top",
+                        }}
+                        anchorOrigin={{
+                            horizontal: "right",
+                            vertical: "bottom",
+                        }}
                     >
-                        <Menu />
-                    </IconButton>
-                    <Typography>Project Title</Typography>
+                        <MenuItem onClick={handleProfileClick}>
+                            Profile
+                        </MenuItem>
+                        <MenuItem onClick={handleLogoutClick}>Log Out</MenuItem>
+                    </Menu>
                 </Toolbar>
             </AppBar>
 

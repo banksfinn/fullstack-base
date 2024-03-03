@@ -25,7 +25,7 @@ class ItemCreateRequest(EntityCreateRequest):
 
 
 class ItemUpdateRequest(EntityUpdateRequest):
-    label: str | None = Field(description="The new label of the item")
+    label: str | None = Field(description="The new label of the item", default=None)
 
 
 class ItemDeleteRequest(EntityDeleteRequest):

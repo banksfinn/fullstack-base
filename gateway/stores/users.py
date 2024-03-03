@@ -33,13 +33,13 @@ class UserStore(BaseStore):
         """Get the requested user via email."""
         entity = self.store().find_one({"user_email": user_email})
         if entity:
-            return self.convert_database_raw_dictionary_to_database_object(entity)
+            return self.convert_raw_dictionary_to_output_entity(entity)
 
     def get_user_from_gateway_by_email(self, user_email: str) -> OutputUser | None:
         """Get the requested user via email."""
         entity = self.store().find_one({"user_email": user_email})
         if entity:
-            return self.convert_database_raw_dictionary_to_gateway_object(entity)
+            return self.convert_raw_dictionary_to_output_entity(entity)
 
     def get_user_from_database_by_display_name(self, display_name: str) -> DatabaseUser | None:
         """Get the requested user via display name."""

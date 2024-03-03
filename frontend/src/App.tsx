@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./App.css";
 import AppFrameView from "./views/AppFrameView";
 import AuthProvider from "./providers/AuthProvider";
+import SnackbarProvider from "./providers/SnackbarProvider";
 // import { updateUser } from './store/components/userSlice';
 // import { useGetCurrentUserMeGetQuery } from './clients/generatedGatewayClient';
 
@@ -25,17 +26,17 @@ function App() {
 
     return (
         <div className="App">
-            {/* <ToastProvider> */}
-            <AuthProvider>
-                <ThemeProvider theme={theme}>
-                    <BrowserRouter>
-                        <AppFrameView>
-                            <Router />
-                        </AppFrameView>
-                    </BrowserRouter>
-                </ThemeProvider>
-            </AuthProvider>
-            {/* </ToastProvider> */}
+            <SnackbarProvider>
+                <AuthProvider>
+                    <ThemeProvider theme={theme}>
+                        <BrowserRouter>
+                            <AppFrameView>
+                                <Router />
+                            </AppFrameView>
+                        </BrowserRouter>
+                    </ThemeProvider>
+                </AuthProvider>
+            </SnackbarProvider>
         </div>
     );
 }

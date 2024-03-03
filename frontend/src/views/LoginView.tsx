@@ -1,25 +1,24 @@
 import { Box, Button, Dialog, TextField, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { useHandleRegisterUserRegisterPostMutation } from "src/clients/generatedGatewayClient";
+import { useHandleUserLoginLoginTokenPostMutation } from "src/clients/generatedGatewayClient";
 import { updateUserState } from "src/store/components/authSlice";
 import {
-    updateRegisterUserDiplayName,
-    updateRegisterUserEmail,
-    updateRegisterUserPassword,
-    useRegistrationState,
-} from "src/store/components/registerUserSlice";
+    updateLoginUserEmail,
+    updateLoginUserPassword,
+    useLoginState,
+} from "src/store/components/loginUserSlice";
 import { addSnackbarMessage } from "src/store/components/snackbarSlice";
 
-const RegisterView = () => {
+const LoginView = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const registrationState = useRegistrationState();
+    const loginState = useLoginState();
 
-    const [registerUser] = useHandleRegisterUserRegisterPostMutation();
+    const [login] = useHandleUserLoginLoginTokenPostMutation();
 
     const handleSubmit = () => {
-        registerUser({ userCreateRequest: registrationState })
+        login({ userLoginRequest: loginState })
             .unwrap()
             .then((response): void => {
                 dispatch(
@@ -27,11 +26,13 @@ const RegisterView = () => {
                         accessToken: response.access_token,
                     }),
                 );
-                addSnackbarMessage({
-                    message: "Registration successful!",
-                    severity: "success",
-                    duration: 5000,
-                });
+                dispatch(
+                    addSnackbarMessage({
+                        message: "Login successful!",
+                        severity: "success",
+                        duration: 5000,
+                    }),
+                );
                 navigate("/items");
             });
     };
@@ -47,9 +48,9 @@ const RegisterView = () => {
                 }}
             >
                 <Box sx={{ width: "100%", my: 2, mb: 4 }}>
-                    <Typography variant="h4">Register</Typography>
+                    <Typography variant="h4">Log In</Typography>
                     <Typography>
-                        or <Link to="/login">Login</Link>
+                        or <Link to="/register">Register</Link>
                     </Typography>
                 </Box>
                 <Box
@@ -60,33 +61,22 @@ const RegisterView = () => {
                     }}
                 >
                     <TextField
-                        label="Display Name"
-                        value={registrationState.display_name}
-                        onChange={(e) =>
-                            dispatch(
-                                updateRegisterUserDiplayName(e.target.value),
-                            )
-                        }
-                        sx={{ my: 1 }}
-                        fullWidth
-                    />
-                    <TextField
                         label="Email"
-                        value={registrationState.user_email}
+                        value={loginState.user_email}
                         onChange={(e) =>
-                            dispatch(updateRegisterUserEmail(e.target.value))
+                            dispatch(updateLoginUserEmail(e.target.value))
                         }
                         sx={{ my: 1 }}
                         fullWidth
                     />
                     <TextField
                         label="Password"
-                        value={registrationState.password}
+                        value={loginState.password}
                         onChange={(e) =>
-                            dispatch(updateRegisterUserPassword(e.target.value))
+                            dispatch(updateLoginUserPassword(e.target.value))
                         }
-                        sx={{ my: 1 }}
                         type="password"
+                        sx={{ my: 1 }}
                         fullWidth
                     />
                     <Button
@@ -101,4 +91,4 @@ const RegisterView = () => {
         </Dialog>
     );
 };
-export default RegisterView;
+export default LoginView;

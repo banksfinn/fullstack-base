@@ -195,12 +195,18 @@ class BaseStore:
         # Get the existing document
         update_info = update_request.model_dump(exclude_defaults=True)
         entity_id = str(update_info["id"])
-        existing_entity = self.store().find_one({"_id": entity_id, "user_id": user.user_id})
+        existing_entity = self.store().find_one({"_id": entity_id})
 
         if not existing_entity:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Unable to locate entity with that id",
+            )
+
+        if existing_entity["user_id"] != user.user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Unable to edit another user's entity",
             )
 
         # Combine the existing with the old

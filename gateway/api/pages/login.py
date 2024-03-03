@@ -13,7 +13,7 @@ router = APIRouter()
 
 def authenticate_user(email: str, password: str) -> OutputUser:
     user: OutputUser | None = user_store.get_user_from_gateway_by_email(user_email=email)
-    print(user)
+
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(
             status_code=400, detail="Unable to authenticate user with email: " + email
