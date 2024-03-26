@@ -65,4 +65,8 @@ class GetEntitiesQuery(BaseModel):
         title="User ID", description="Filter by this specific user ID", default=None
     )
 
-    entity_state: EntityState | None = Field(description="The state of the entity", default=None)
+    entity_state: EntityState | None = Field(
+        description="The state of the entity", default=EntityState.ACTIVE
+    )
+
+    apply_user_filter: bool = Field(description="Should we filter by user id", default=True)

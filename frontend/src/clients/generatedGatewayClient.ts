@@ -26,6 +26,7 @@ const injectedRtkApi = api
             order_by: queryArg.orderBy,
             user_id: queryArg.userId,
             entity_state: queryArg.entityState,
+            apply_user_filter: queryArg.applyUserFilter,
             display_name: queryArg.displayName,
             user_email: queryArg.userEmail,
           },
@@ -65,6 +66,7 @@ const injectedRtkApi = api
             order_by: queryArg.orderBy,
             user_id: queryArg.userId,
             entity_state: queryArg.entityState,
+            apply_user_filter: queryArg.applyUserFilter,
             label: queryArg.label,
             item_type: queryArg.itemType,
           },
@@ -133,6 +135,7 @@ export type GetUsersApiArg = {
   orderBy?: string;
   userId?: string | null;
   entityState?: EntityState | null;
+  applyUserFilter?: boolean;
   displayName?: string | null;
   userEmail?: string | null;
 };
@@ -158,6 +161,7 @@ export type GetItemsApiArg = {
   orderBy?: string;
   userId?: string | null;
   entityState?: EntityState | null;
+  applyUserFilter?: boolean;
   label?: string | null;
   itemType?: ItemType | null;
 };

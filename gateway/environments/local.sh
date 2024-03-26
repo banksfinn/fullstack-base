@@ -1,0 +1,6 @@
+export MONGO_DB_USERNAME="root"
+export MONGO_DB_PASSWORD="example"
+export MONGO_DB_URL="localhost"
+export GATEWAY_SECRET_KEY="f6c71451-e913-4377-80e8-6abca907568f"
+export GATEWAY_PORT="6524"
+export ENVIRONMENT="local"

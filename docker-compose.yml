@@ -5,7 +5,32 @@ services:
     image: mongo
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
     ports:
-      - 27011:27017
+      - 27017:27017
+  gateway:
+    build: gateway
+    # develop:
+    #   watch:
+    #     - action: sync
+    #       target: ./gateway
+    ports:
+      - ${GATEWAY_PORT}:8080
+    environment:
+      MONGO_DB_USERNAME: ${MONGO_DB_USERNAME}
+      MONGO_DB_PASSWORD: ${MONGO_DB_PASSWORD}
+      MONGO_DB_URL: mongo
+      GATEWAY_PORT: ${GATEWAY_PORT}
+      ENVIRONMENT: ${GATEWAY_ENVIROMMENT}
+      GATEWAY_SECRET_KEY: ${GATEWAY_SECRET_KEY}
+  frontend:
+    build: frontend
+    # develop:
+    #   watch:
+    #     - action: sync
+    #       target: ./gateway
+    environment:
+      GATEWAY_URL: http://gateway:8080/
+    ports:
+      - ${FRONTEND_PORT}:8080

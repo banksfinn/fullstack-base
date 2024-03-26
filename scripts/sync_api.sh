@@ -5,5 +5,6 @@ source scripts/venv/bin/activate
 python scripts/openapi/update_api.py
 
 pushd scripts/openapi
+yarn install
 yarn codegen
 popd

@@ -16,6 +16,7 @@ from datetime import datetime
 from structlog import get_logger
 from pymongo import MongoClient
 from http import HTTPStatus
+from core.config import settings
 
 
 class BaseStore:
@@ -29,9 +30,11 @@ class BaseStore:
     conflicting_fields: list[str] = []
 
     def __init__(self):
-        # TODO: Switch this to enterprise
-        self.client = MongoClient("mongodb://root:example@localhost:27011")
         self.logger = get_logger()
+        # TODO: Switch this to enterprise
+        self.logger.info("initializing mongo", mongo_string=settings.MONGO_DB_STRING)
+        self.client = MongoClient(settings.MONGO_DB_STRING)
+        self.logger.info("initializing mongo", mongo_string=settings.MONGO_DB_STRING)
 
     # Base helper functions
 
@@ -73,19 +76,20 @@ class BaseStore:
         # Common filters
         return search
 
-    def _search_query_base(self, query: GetEntitiesQuery, user: OutputUser, search: dict[str, Any]):
-        # Common filters
-        if query.entity_state is None:
-            search["entity_state"] = "ACTIVE"
+    def _apply_user_filter(self, query: GetEntitiesQuery, user: OutputUser, search: dict[str, Any]):
         if self.require_auth:
             search["user_id"] = user.user_id
         return search
 
-    def check_for_conflicts(self, entity_request: EntityCreateRequest | EntityUpdateRequest):
+    def check_for_conflicts(
+        self,
+        entity_request: EntityCreateRequest | EntityUpdateRequest,
+        user: OutputUser | None = None,
+    ):
         for field in self.conflicting_fields:
             if hasattr(entity_request, field):
                 search_response = self.search(
-                    query=self.query(**{field: getattr(entity_request, field)})
+                    query=self.query(**{field: getattr(entity_request, field)}), user=user
                 )
                 if not hasattr(entity_request, "id") and search_response.items:
                     raise HTTPException(
@@ -99,14 +103,10 @@ class BaseStore:
                             HTTPStatus.CONFLICT, f"An entity with field {field} already exists"
                         )
 
-    def search(self, query: GetEntitiesQuery, user: OutputUser) -> GetEntitiesResponse:
-        # Create the search
-        search: dict[str, Any] = {}
-
-        # Apply entity specific filtering
-        search = self._search_query_base(query, user, search)
-        search = self._search_query_extras(query, search)
-
+    def execute_search(
+        self, query: GetEntitiesQuery, search: dict[str, Any]
+    ) -> GetEntitiesResponse:
+        """Execute search."""
         sort_mode = {query.order_by: 1 if query.direction == "asc" else -1}
 
         self.logger.info(
@@ -123,6 +123,18 @@ class BaseStore:
         return self.base_response_model(
             items=[self.convert_raw_dictionary_to_output_entity(e) for e in entities]
         )
+
+    def search(self, query: GetEntitiesQuery, user: OutputUser | None) -> GetEntitiesResponse:
+        # Create the search
+        search: dict[str, Any] = {}
+
+        # Apply entity specific filtering
+        if user and (query.apply_user_filter or self.require_auth):
+            search = self._apply_user_filter(query, user, search)
+
+        search = self._search_query_extras(query, search)
+
+        return self.execute_search(query, search)
 
     def get(self, id: str, user: OutputUser) -> OutputEntity | None:
         raw_entity = self.store().find_one({"_id": id, "user_id": user.user_id})
@@ -151,7 +163,7 @@ class BaseStore:
         # Store the time, generate the UUID
         now = datetime.now()
 
-        self.check_for_conflicts(creation_request)
+        self.check_for_conflicts(creation_request, user)
 
         new_id = self.generate_id()
 
@@ -193,7 +205,7 @@ class BaseStore:
         # Store the time
         now = datetime.now()
 
-        self.check_for_conflicts(update_request)
+        self.check_for_conflicts(update_request, user)
 
         # Get the existing document
         update_info = update_request.model_dump(exclude_defaults=True)
